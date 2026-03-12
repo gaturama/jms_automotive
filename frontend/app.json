@@ -1,0 +1,12 @@
+{
+  "plugins": [
+    "expo-asset",
+    "expo-secure-store",
+    "expo-local-authentication"
+  ],
+  "ios": {
+    "infoPlist": {
+      "NSFaceIDUsageDescription": "We use Face ID for fast and secure login."
+    }
+  }
+}
