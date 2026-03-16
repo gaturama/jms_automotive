@@ -7,7 +7,7 @@ export interface IUser extends Document {
   password?: string;
   avatar?: string;
   bio?: string;
-  role: 'user' | 'admin';
+  role: "user" | "admin";
   biometricEnabled: boolean;
   notificationsEnabled: boolean;
   location?: string;
@@ -15,6 +15,8 @@ export interface IUser extends Document {
   showFavorites?: boolean;
   showStats?: boolean;
   profileUrl?: string;
+  phone?: string;
+  dateBirth?: string;
   createdAt: Date;
   comparePassword(candidate: string): Promise<boolean>;
 }
@@ -34,6 +36,8 @@ const UserSchema = new Schema<IUser>(
     showFavorites: { type: Boolean, default: true },
     showStats: { type: Boolean, default: true },
     profileUrl: { type: String },
+    phone: { type: String },
+    dateBirth: { type: String },
   },
   { timestamps: true },
 );

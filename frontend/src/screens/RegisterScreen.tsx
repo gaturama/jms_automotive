@@ -125,8 +125,8 @@ export default function RegisterScreen({ navigation }: Props) {
       const result = await register({
         name,
         email,
-        phone: InputMasks.unformatPhone(phone),
         password,
+        phone: InputMasks.unformatPhone(phone),
         dateBirth,
       });
 

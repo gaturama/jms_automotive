@@ -44,11 +44,13 @@ export default function ProfileScreen({ navigation }: Props) {
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
   const [isLoading, setIsLoading] = useState(true);
+
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(30)).current;
   const scaleAnim = useRef(new Animated.Value(0.8)).current;
   const [refreshing, setRefreshing] = useState(false);
-  const { profile, getProfileCompletionPercentage } = useUserProfile();
+  const { profile, getProfileCompletionPercentage, reloadProfile } =
+    useUserProfile();
   const completion = getProfileCompletionPercentage();
   const [devModeTaps, setDevModeTaps] = useState(0);
 
@@ -75,17 +77,28 @@ export default function ProfileScreen({ navigation }: Props) {
     loadProfileData();
   }, []);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-
-    await loadProfileData();
-
-    setRefreshing(false);
-  };
+  useEffect(() => {
+    if (currentUser) {
+      setName(currentUser.name);
+      setEmail(currentUser.email);
+      setPhone(currentUser.phone || "");
+    }
+  }, [currentUser]);
 
   const loadProfileData = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1200));
-    setIsLoading(false);
+    try {
+      await reloadProfile();
+    } catch (error) {
+      console.error("Erro ao carregar perfil:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await loadProfileData();
+    setRefreshing(false);
   };
 
   const handlePhoneChange = (text: string) => {
@@ -94,19 +107,19 @@ export default function ProfileScreen({ navigation }: Props) {
     HapticFeedback.selection();
   };
 
-  useEffect(() => {
-    if (currentUser) {
-      setName(currentUser.name);
-      setEmail(currentUser.email);
-      setPhone(currentUser.phone);
-    }
-  }, [currentUser]);
-
   const handleEdit = async () => {
-    if (!name || !email || !phone) {
+    if (!name || !email) {
       HapticFeedback.error();
       setAlertTitle("Campos Incompletos");
-      setAlertMessage("Por favor, preencha nome, email e telefone.");
+      setAlertMessage("Por favor, preencha nome e email.");
+      setAlertVisible(true);
+      return;
+    }
+
+    if (password && password.length < 6) {
+      HapticFeedback.error();
+      setAlertTitle("Senha Fraca");
+      setAlertMessage("A senha deve ter no mínimo 6 caracteres.");
       setAlertVisible(true);
       return;
     }
@@ -114,23 +127,8 @@ export default function ProfileScreen({ navigation }: Props) {
     setIsLoading(true);
 
     try {
-      const updateData: any = {
-        name,
-        email,
-        phone,
-      };
-
-      if (password) {
-        if (password.length < 4) {
-          HapticFeedback.error();
-          setAlertTitle("Senha Fraca");
-          setAlertMessage("A senha deve ter no mínimo 4 caracteres.");
-          setAlertVisible(true);
-          setIsLoading(false);
-          return;
-        }
-        updateData.password = password;
-      }
+      const updateData: any = { name, email, phone };
+      if (password) updateData.password = password;
 
       const result = await updateUser(updateData);
 
@@ -159,10 +157,7 @@ export default function ProfileScreen({ navigation }: Props) {
   const handleLogout = async () => {
     HapticFeedback.warning();
     await logout();
-    navigation.reset({
-      index: 0,
-      routes: [{ name: "Login" }],
-    });
+    navigation.reset({ index: 0, routes: [{ name: "Login" }] });
   };
 
   const closeAlert = () => {
@@ -228,10 +223,7 @@ export default function ProfileScreen({ navigation }: Props) {
           <Animated.View
             style={[
               styles.contentContainer,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
             ]}
           >
             {isLoading ? (
@@ -241,7 +233,6 @@ export default function ProfileScreen({ navigation }: Props) {
                 >
                   <Skeleton width={120} height={120} borderRadius={60} />
                 </View>
-
                 <View style={styles.glassCard}>
                   <View style={{ marginBottom: 20 }}>
                     <View
@@ -268,9 +259,7 @@ export default function ProfileScreen({ navigation }: Props) {
                       <Skeleton width={50} height={30} borderRadius={15} />
                     </View>
                   </View>
-
                   <View style={styles.divider} />
-
                   {[1, 2, 3, 4].map((i) => (
                     <View key={i} style={{ marginBottom: 20 }}>
                       <Skeleton
@@ -282,18 +271,15 @@ export default function ProfileScreen({ navigation }: Props) {
                       <Skeleton width="100%" height={50} borderRadius={12} />
                     </View>
                   ))}
-
                   <Skeleton
                     width="100%"
                     height={54}
                     borderRadius={14}
                     style={{ marginBottom: 20 }}
                   />
-
                   <SkeletonListItem />
                   <SkeletonListItem />
                   <SkeletonListItem />
-
                   <Skeleton
                     width="100%"
                     height={50}
@@ -314,11 +300,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     onPress={() => {
                       const newTaps = devModeTaps + 1;
                       setDevModeTaps(newTaps);
-
-                      if (newTaps >= 3 && newTaps < 7) {
-                        HapticFeedback.light();
-                      }
-
+                      if (newTaps >= 3 && newTaps < 7) HapticFeedback.light();
                       if (newTaps === 7) {
                         HapticFeedback.success();
                         Alert.alert(
@@ -349,7 +331,6 @@ export default function ProfileScreen({ navigation }: Props) {
                       </Text>
                     </View>
                   </TouchableOpacity>
-
                   <TouchableOpacity style={styles.avatarEditButton}>
                     <Ionicons name="camera" size={18} color="#fff" />
                   </TouchableOpacity>
@@ -361,7 +342,7 @@ export default function ProfileScreen({ navigation }: Props) {
                       position: "absolute",
                       top: 200,
                       alignSelf: "center",
-                      backgroundColor: "rgba(0, 0, 0, 0.7)",
+                      backgroundColor: "rgba(0,0,0,0.7)",
                       paddingHorizontal: 16,
                       paddingVertical: 8,
                       borderRadius: 20,
@@ -369,11 +350,7 @@ export default function ProfileScreen({ navigation }: Props) {
                     }}
                   >
                     <Text
-                      style={{
-                        color: "#fff",
-                        fontSize: 12,
-                        fontWeight: "600",
-                      }}
+                      style={{ color: "#fff", fontSize: 12, fontWeight: "600" }}
                     >
                       {7 - devModeTaps} toques restantes...
                     </Text>
@@ -426,7 +403,6 @@ export default function ProfileScreen({ navigation }: Props) {
                         </Text>
                       )}
                     </View>
-
                     <View style={{ flex: 1 }}>
                       <Text
                         style={{
@@ -444,7 +420,6 @@ export default function ProfileScreen({ navigation }: Props) {
                         {profile?.bio || "Toque para personalizar seu perfil"}
                       </Text>
                     </View>
-
                     <View
                       style={{
                         flexDirection: "row",
@@ -478,6 +453,7 @@ export default function ProfileScreen({ navigation }: Props) {
                       />
                     </View>
                   </TouchableOpacity>
+
                   <View style={styles.divider} />
 
                   <View style={styles.themeSection}>
@@ -500,7 +476,9 @@ export default function ProfileScreen({ navigation }: Props) {
                     </View>
                     <ThemeToggle />
                   </View>
+
                   <View style={styles.divider} />
+
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Nome Completo</Text>
                     <View style={styles.inputWrapper}>
@@ -522,6 +500,7 @@ export default function ProfileScreen({ navigation }: Props) {
                       />
                     </View>
                   </View>
+
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Email</Text>
                     <View style={styles.inputWrapper}>
@@ -544,6 +523,7 @@ export default function ProfileScreen({ navigation }: Props) {
                       />
                     </View>
                   </View>
+
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Telefone</Text>
                     <View style={styles.inputWrapper}>
@@ -566,6 +546,7 @@ export default function ProfileScreen({ navigation }: Props) {
                       />
                     </View>
                   </View>
+
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>Nova Senha (opcional)</Text>
                     <View style={styles.inputWrapper}>
@@ -601,6 +582,7 @@ export default function ProfileScreen({ navigation }: Props) {
                       </TouchableOpacity>
                     </View>
                   </View>
+
                   <TouchableOpacity
                     style={[styles.button, isLoading && { opacity: 0.7 }]}
                     onPress={handleEdit}
@@ -621,8 +603,14 @@ export default function ProfileScreen({ navigation }: Props) {
                       </>
                     )}
                   </TouchableOpacity>
+
                   <View style={styles.optionsContainer}>
-                    <TouchableOpacity style={styles.optionButton}>
+                    <TouchableOpacity
+                      style={styles.optionButton}
+                      onPress={() =>
+                        navigation.navigate("NotificationSettings")
+                      }
+                    >
                       <Ionicons
                         name="notifications-outline"
                         size={20}
@@ -635,7 +623,6 @@ export default function ProfileScreen({ navigation }: Props) {
                         color={colors.textTertiary}
                       />
                     </TouchableOpacity>
-
                     <TouchableOpacity style={styles.optionButton}>
                       <Ionicons
                         name="shield-checkmark-outline"
@@ -649,7 +636,6 @@ export default function ProfileScreen({ navigation }: Props) {
                         color={colors.textTertiary}
                       />
                     </TouchableOpacity>
-
                     <TouchableOpacity style={styles.optionButton}>
                       <Ionicons
                         name="help-circle-outline"
@@ -664,6 +650,7 @@ export default function ProfileScreen({ navigation }: Props) {
                       />
                     </TouchableOpacity>
                   </View>
+
                   <TouchableOpacity
                     style={styles.logoutButton}
                     onPress={handleLogout}

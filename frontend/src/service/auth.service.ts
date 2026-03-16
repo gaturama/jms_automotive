@@ -2,11 +2,19 @@ import api from "./api";
 import { saveToken, removeToken } from "../utils/Token";
 
 export const authService = {
-  register: async (name: string, email: string, password: string) => {
+  register: async (
+    name: string,
+    email: string,
+    password: string,
+    phone?: string,
+    dateBirth?: string,
+  ) => {
     const { data } = await api.post("/auth/register", {
       name,
       email,
       password,
+      phone,
+      dateBirth,
     });
     await saveToken(data.data.accessToken, data.data.refreshToken);
     return data.data.user;

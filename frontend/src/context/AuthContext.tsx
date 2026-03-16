@@ -25,16 +25,20 @@ interface User {
 interface AuthContextData {
   currentUser: User | null;
   isAuthenticated: boolean;
-  register: (
-    userData: { name: string; email: string; password: string }
-  ) => Promise<{ success: boolean; message: string }>;
+  register: (userData: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    dateBirth?: string;
+  }) => Promise<{ success: boolean; message: string }>;
   login: (
     email: string,
-    password: string
+    password: string,
   ) => Promise<{ success: boolean; message: string }>;
   logout: () => Promise<void>;
   updateUser: (
-    userData: Partial<User>
+    userData: Partial<User>,
   ) => Promise<{ success: boolean; message: string }>;
   loading: boolean;
 }
@@ -72,16 +76,28 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     }
   };
 
+  register: (userData: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    dateBirth?: string;
+  }) => Promise<{ success: boolean; message: string }>;
+
   const register = async (userData: {
     name: string;
     email: string;
     password: string;
+    phone?: string;
+    dateBirth?: string;
   }): Promise<{ success: boolean; message: string }> => {
     try {
       const user = await authService.register(
         userData.name,
         userData.email,
         userData.password,
+        userData.phone,
+        userData.dateBirth,
       );
       setCurrentUser(user);
       return { success: true, message: `Bem-vindo, ${user.name}!` };

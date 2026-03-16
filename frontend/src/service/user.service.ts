@@ -26,4 +26,9 @@ export const userService = {
     const { data } = await api.get("/users/stats");
     return data.data;
   },
+
+  getMe: async () => {
+    const { data } = await api.get("/users/me");
+    return data.data;
+  },
 };

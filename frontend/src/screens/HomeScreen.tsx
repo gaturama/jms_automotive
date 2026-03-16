@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
 import {
   View,
   FlatList,
@@ -21,7 +21,6 @@ import {
   SkeletonStatCard,
 } from "../components/SkeletonComponents";
 import { Car } from "../navigation/car";
-import { MOCK_CARS } from "../data/carsData";
 import { Ionicons } from "@expo/vector-icons";
 import { CarCard } from "../components/CarCard";
 import { HapticFeedback } from "../utils/Haptics";
@@ -36,10 +35,12 @@ import {
   AdvancedSearchModal,
   AdvancedFilters,
 } from "../components/AdvancedSearchModal";
+import { carService } from "../service/car.service";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
 export default function HomeScreen({ navigation }: Props) {
+  const [cars, setCars] = useState<Car[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortBy, setSortBy] = useState<SortOption>("price-desc");
@@ -78,20 +79,27 @@ export default function HomeScreen({ navigation }: Props) {
     loadData();
   }, []);
 
+  const loadData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const result = await carService.getCars({ limit: 100 });
+      setCars(result.cars);
+    } catch (error) {
+      console.error("Erro ao carregar carros:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
   const onRefresh = async () => {
     setRefreshing(true);
-    await new Promise((resolve) => setTimeout(resolve, 1500));
+    await loadData();
     setRefreshing(false);
-  };
-
-  const loadData = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    setIsLoading(false);
   };
 
   const filteredAndSortedCars = useMemo(() => {
     let filtered = AdvancedFilterHelper.applyFilters(
-      MOCK_CARS,
+      cars,
       advancedFilters,
       searchQuery,
     );
@@ -122,7 +130,7 @@ export default function HomeScreen({ navigation }: Props) {
     });
 
     return filtered;
-  }, [searchQuery, sortBy, brandFilter, advancedFilters]);
+  }, [cars, searchQuery, sortBy, brandFilter, advancedFilters]);
 
   const handleProfile = () => {
     HapticFeedback.light();
@@ -181,8 +189,8 @@ export default function HomeScreen({ navigation }: Props) {
   );
 
   const availableBrands = useMemo(
-    () => AdvancedFilterHelper.extractUniqueBrands(MOCK_CARS),
-    [],
+    () => AdvancedFilterHelper.extractUniqueBrands(cars),
+    [cars],
   );
 
   return (
@@ -434,7 +442,7 @@ export default function HomeScreen({ navigation }: Props) {
       ) : (
         <FlatList
           data={filteredAndSortedCars}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <CarCard car={item} onPress={() => handleCarPress(item)} />
           )}
@@ -460,7 +468,7 @@ export default function HomeScreen({ navigation }: Props) {
         brandFilter={brandFilter}
         setBrandFilter={setBrandFilter}
         priceRange={{ min: 0, max: 50000000 }}
-        setPriceRange={() => { }}
+        setPriceRange={() => {}}
         onApply={handleApplyFilters}
         onReset={handleResetFilters}
       />
@@ -472,12 +480,13 @@ export default function HomeScreen({ navigation }: Props) {
         currentFilters={advancedFilters}
         availableBrands={availableBrands}
       />
+
       {!isLoading && (
         <TouchableOpacity
           style={styles.fab}
           onPress={() => {
             HapticFeedback.medium();
-            navigation.navigate('Chatbot');
+            navigation.navigate("Chatbot");
           }}
           activeOpacity={0.8}
         >
