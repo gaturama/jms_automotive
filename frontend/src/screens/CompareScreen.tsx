@@ -16,12 +16,12 @@ import {
   SkeletonChart,
 } from "../components/SkeletonComponents";
 import { Car } from "../navigation/car";
-import { MOCK_CARS } from "../data/carsData";
 import { Ionicons } from "@expo/vector-icons";
 import { HapticFeedback } from "../utils/Haptics";
 import { useTheme } from "../context/ThemeContext";
 import { createStyles } from "../styles/stylesCompare";
 import { RootStackParamList } from "../navigation/types";
+import { carService } from "../service/car.service";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { ComparisonChart } from "../components/ComparisonChart";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
@@ -29,6 +29,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 type Props = NativeStackScreenProps<RootStackParamList, "Compare">;
 
 export default function CompareScreen({ navigation }: Props) {
+  const [cars, setCars] = useState<Car[]>([]);
   const [car1, setCar1] = useState<Car | null>(null);
   const [car2, setCar2] = useState<Car | null>(null);
   const [selectingCar, setSelectingCar] = useState<1 | 2 | null>(null);
@@ -56,17 +57,27 @@ export default function CompareScreen({ navigation }: Props) {
         useNativeDriver: true,
       }),
     ]).start();
+
+    loadCars();
   }, []);
+
+  const loadCars = async () => {
+    try {
+      const result = await carService.getCars({ limit: 100 });
+      setCars(result.cars);
+    } catch (error) {
+      console.error("Erro ao carregar carros:", error);
+    }
+  };
 
   const onRefresh = async () => {
     setRefreshing(true);
-
+    await loadCars();
     if (car1 && car2) {
       setIsLoading(true);
       await new Promise((resolve) => setTimeout(resolve, 1000));
       setIsLoading(false);
     }
-
     setRefreshing(false);
   };
 
@@ -78,17 +89,10 @@ export default function CompareScreen({ navigation }: Props) {
   const handleCarSelected = async (car: Car) => {
     setModalVisible(false);
     setIsLoading(true);
-
     HapticFeedback.success();
-
     await new Promise((resolve) => setTimeout(resolve, 1000));
-
-    if (selectingCar === 1) {
-      setCar1(car);
-    } else if (selectingCar === 2) {
-      setCar2(car);
-    }
-
+    if (selectingCar === 1) setCar1(car);
+    else if (selectingCar === 2) setCar2(car);
     setIsLoading(false);
     setSelectingCar(null);
   };
@@ -106,49 +110,45 @@ export default function CompareScreen({ navigation }: Props) {
     setCar2(null);
   };
 
-  const renderCarSelector = (carNumber: 1 | 2, selectedCar: Car | null) => {
-    return (
-      <TouchableOpacity
-        style={styles.carSelector}
-        onPress={() => handleSelectCar(carNumber)}
-        activeOpacity={0.8}
-      >
-        {selectedCar ? (
-          <View style={styles.selectedCarContainer}>
-            <Text style={styles.selectedCarName}>{selectedCar.name}</Text>
-            <Text style={styles.selectedCarModel}>
-              {selectedCar.brand} {selectedCar.year}
-            </Text>
-            <View style={styles.quickStats}>
-              <View style={styles.quickStat}>
-                <Ionicons name="flash" size={16} color={colors.accent} />
-                <Text style={styles.quickStatValue}>
-                  {selectedCar.horsepower} cv
-                </Text>
-              </View>
-              <View style={styles.quickStat}>
-                <Ionicons name="speedometer" size={16} color={colors.accent} />
-                <Text style={styles.quickStatValue}>
-                  {selectedCar.maxSpeed} km/h
-                </Text>
-              </View>
+  const renderCarSelector = (carNumber: 1 | 2, selectedCar: Car | null) => (
+    <TouchableOpacity
+      style={styles.carSelector}
+      onPress={() => handleSelectCar(carNumber)}
+      activeOpacity={0.8}
+    >
+      {selectedCar ? (
+        <View style={styles.selectedCarContainer}>
+          <Text style={styles.selectedCarName}>{selectedCar.name}</Text>
+          <Text style={styles.selectedCarModel}>
+            {selectedCar.brand} {selectedCar.year}
+          </Text>
+          <View style={styles.quickStats}>
+            <View style={styles.quickStat}>
+              <Ionicons name="flash" size={16} color={colors.accent} />
+              <Text style={styles.quickStatValue}>
+                {selectedCar.horsepower} cv
+              </Text>
+            </View>
+            <View style={styles.quickStat}>
+              <Ionicons name="speedometer" size={16} color={colors.accent} />
+              <Text style={styles.quickStatValue}>
+                {selectedCar.maxSpeed} km/h
+              </Text>
             </View>
           </View>
-        ) : (
-          <View style={styles.emptyCarContainer}>
-            <Ionicons
-              name="add-circle-outline"
-              size={48}
-              color={colors.textTertiary}
-            />
-            <Text style={styles.emptyCarText}>
-              Selecionar Carro {carNumber}
-            </Text>
-          </View>
-        )}
-      </TouchableOpacity>
-    );
-  };
+        </View>
+      ) : (
+        <View style={styles.emptyCarContainer}>
+          <Ionicons
+            name="add-circle-outline"
+            size={48}
+            color={colors.textTertiary}
+          />
+          <Text style={styles.emptyCarText}>Selecionar Carro {carNumber}</Text>
+        </View>
+      )}
+    </TouchableOpacity>
+  );
 
   const renderComparisonRow = (
     label: string,
@@ -183,12 +183,10 @@ export default function CompareScreen({ navigation }: Props) {
             {value1}
           </Text>
         </View>
-
         <View style={styles.comparisonLabel}>
           <Ionicons name={icon as any} size={20} color={colors.accent} />
           <Text style={styles.comparisonLabelText}>{label}</Text>
         </View>
-
         <View
           style={[
             styles.comparisonCell,
@@ -223,10 +221,7 @@ export default function CompareScreen({ navigation }: Props) {
       <Animated.View
         style={[
           styles.header,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
         ]}
       >
         <TouchableOpacity
@@ -235,7 +230,6 @@ export default function CompareScreen({ navigation }: Props) {
         >
           <Ionicons name="arrow-back" size={24} color="#fff" />
         </TouchableOpacity>
-
         <View style={styles.headerCenter}>
           <Ionicons
             name="git-compare"
@@ -245,7 +239,6 @@ export default function CompareScreen({ navigation }: Props) {
           />
           <Text style={styles.headerTitle}>Comparar Carros</Text>
         </View>
-
         <TouchableOpacity onPress={handleReset} style={styles.headerButton}>
           <Ionicons name="refresh" size={24} color="#fff" />
         </TouchableOpacity>
@@ -264,14 +257,10 @@ export default function CompareScreen({ navigation }: Props) {
         }
       >
         <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }}
+          style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
         >
           <View style={styles.selectorsContainer}>
             {renderCarSelector(1, car1)}
-
             {car1 && car2 && (
               <TouchableOpacity
                 style={styles.swapButton}
@@ -284,7 +273,6 @@ export default function CompareScreen({ navigation }: Props) {
                 />
               </TouchableOpacity>
             )}
-
             {renderCarSelector(2, car2)}
           </View>
 
@@ -300,7 +288,6 @@ export default function CompareScreen({ navigation }: Props) {
                   />
                   <SkeletonChart />
                 </View>
-
                 <View style={styles.specsSection}>
                   <Skeleton
                     width={160}
@@ -308,7 +295,6 @@ export default function CompareScreen({ navigation }: Props) {
                     borderRadius={6}
                     style={{ marginBottom: 16 }}
                   />
-
                   <View style={styles.comparisonTable}>
                     <Skeleton
                       width={120}
@@ -320,7 +306,6 @@ export default function CompareScreen({ navigation }: Props) {
                     <SkeletonListItem />
                     <SkeletonListItem />
                     <SkeletonListItem />
-
                     <Skeleton
                       width={80}
                       height={20}
@@ -330,7 +315,6 @@ export default function CompareScreen({ navigation }: Props) {
                     <SkeletonListItem />
                     <SkeletonListItem />
                     <SkeletonListItem />
-
                     <Skeleton
                       width={100}
                       height={20}
@@ -343,7 +327,6 @@ export default function CompareScreen({ navigation }: Props) {
                     <SkeletonListItem />
                   </View>
                 </View>
-
                 <View style={styles.summarySection}>
                   <Skeleton
                     width={100}
@@ -370,7 +353,6 @@ export default function CompareScreen({ navigation }: Props) {
 
                 <View style={styles.specsSection}>
                   <Text style={styles.sectionTitle}>Especificações</Text>
-
                   <View style={styles.comparisonTable}>
                     <Text style={styles.categoryTitle}>Desempenho</Text>
                     {renderComparisonRow(
@@ -520,8 +502,8 @@ export default function CompareScreen({ navigation }: Props) {
             </View>
 
             <FlatList
-              data={MOCK_CARS}
-              keyExtractor={(item) => item.id}
+              data={cars}
+              keyExtractor={(item) => item._id}
               renderItem={({ item }) => (
                 <TouchableOpacity
                   style={styles.modalCarItem}

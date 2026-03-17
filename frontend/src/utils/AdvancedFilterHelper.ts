@@ -24,7 +24,7 @@ export class AdvancedFilterHelper {
         (car) =>
           car.name.toLowerCase().includes(query) ||
           car.brand.toLowerCase().includes(query) ||
-          car.model.toLowerCase().includes(query),
+          car.carModel.toLowerCase().includes(query),
       );
     }
 

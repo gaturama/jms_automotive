@@ -8,60 +8,38 @@ import React, {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import * as ImagePicker from "expo-image-picker";
 import { useAuth } from "./AuthContext";
-
-/**
- * Sistema de Perfil Público do Usuário
- *
- * Gerencia:
- * - Bio/Descrição
- * - Foto de perfil
- * - Favoritos públicos
- * - Estatísticas públicas
- * - Privacidade
- *
- * IMPORTANTE: Nome, email e phone vêm do AuthContext
- */
+import { userService } from "../service/user.service";
 
 interface UserProfile {
   bio: string;
   profileImage: string | null;
   coverImage: string | null;
-
   location: string;
   favoritesBrand: string;
-
   showFavorites: boolean;
   showStats: boolean;
-
   profileUrl: string;
-
   createdAt: string;
   updatedAt: string;
 }
 
 interface UserProfileContextData {
   profile: UserProfile | null;
-
   updateBio: (bio: string) => Promise<void>;
   updateProfileImage: () => Promise<void>;
   updateCoverImage: () => Promise<void>;
   removeProfileImage: () => Promise<void>;
   updateLocation: (location: string) => Promise<void>;
   updateFavoritesBrand: (brand: string) => Promise<void>;
-
   toggleShowFavorites: () => Promise<void>;
   toggleShowStats: () => Promise<void>;
-
   getProfileCompletionPercentage: () => number;
   isProfileComplete: () => boolean;
   reloadProfile: () => Promise<void>;
-
   resetProfile: () => Promise<void>;
 }
 
-const getStorageKey = (userEmail: string): string => {
-  return `@CarShowroom:userProfile:${userEmail}`;
-};
+const getImageStorageKey = (userId: string) => `@CarShowroom:profileImages:${userId}`;
 
 const UserProfileContext = createContext<UserProfileContextData>(
   {} as UserProfileContextData,
@@ -78,94 +56,91 @@ export const UserProfileProvider: React.FC<UserProfileProviderProps> = ({
   const { currentUser } = useAuth();
 
   useEffect(() => {
-    if (currentUser?.email) {
-      console.log('Usuário mudou, carregando perfil para:', currentUser.email);
+    if (currentUser?._id) {
       loadProfile();
+    } else {
+      setProfile(null);
     }
-  }, [currentUser?.email]);
+  }, [currentUser?._id]);
 
   const loadProfile = async () => {
-    if(!currentUser?.email) {
-      console.log('Sem usuário logado, não carregar perfil');
-      return;
-    }
-
-    const STORAGE_KEY = getStorageKey(currentUser.email);
+    if (!currentUser) return;
 
     try {
-      const saved = await AsyncStorage.getItem(STORAGE_KEY);
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        setProfile(parsed);
-        console.log("Perfil carregado:", currentUser.email, ":", parsed);
-      } else {
-        const initialProfile: UserProfile = {
-          bio: "",
-          profileImage: null,
-          coverImage: null,
-          location: "",
-          favoritesBrand: "",
-          showFavorites: true,
-          showStats: true,
-          profileUrl: generateProfileUrl(),
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString(),
-        };
-        await saveProfile(initialProfile);
-        console.log("Perfil inicial criado");
-      }
+      const remoteUser = await userService.getMe();
+
+      const imageData = await AsyncStorage.getItem(getImageStorageKey(currentUser._id));
+      const images = imageData ? JSON.parse(imageData) : { profileImage: null, coverImage: null };
+
+      const loadedProfile: UserProfile = {
+        bio: remoteUser.bio || "",
+        location: remoteUser.location || "",
+        favoritesBrand: remoteUser.favoritesBrand || "",
+        showFavorites: remoteUser.showFavorites ?? true,
+        showStats: remoteUser.showStats ?? true,
+        profileUrl: remoteUser.profileUrl || `carshowroom.app/u/${currentUser._id}`,
+        createdAt: remoteUser.createdAt || new Date().toISOString(),
+        updatedAt: remoteUser.updatedAt || new Date().toISOString(),
+        profileImage: images.profileImage,
+        coverImage: images.coverImage,
+      };
+
+      setProfile(loadedProfile);
     } catch (error) {
-      console.error("Error loading profile:", error);
+      console.error("Erro ao carregar perfil:", error);
     }
   };
 
-  const saveProfile = async (updatedProfile: UserProfile) => {
-    if (!currentUser?.email) {
-      console.log('Sem usuário logado, não salvar perfil');
-      return;
-    }
-
-    const STORAGE_KEY = getStorageKey(currentUser.email);
-
+  const saveRemoteProfile = async (fields: Partial<UserProfile>) => {
     try {
-      updatedProfile.updatedAt = new Date().toISOString();
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(updatedProfile));
-      setProfile(updatedProfile);
-      console.log("Perfil salvo:", updatedProfile);
+      await userService.updateProfile(fields);
     } catch (error) {
-      console.error("Error saving profile:", error);
+      console.error("Erro ao salvar perfil no backend:", error);
+      throw error;
     }
   };
 
-  const generateProfileUrl = (): string => {
-    return `carshowroom.app/u/${Math.random().toString(36).substr(2, 9)}`;
+  const saveLocalImages = async (images: { profileImage: string | null; coverImage: string | null }) => {
+    if (!currentUser) return;
+    await AsyncStorage.setItem(getImageStorageKey(currentUser._id), JSON.stringify(images));
   };
 
   const updateBio = async (bio: string) => {
-    if (!profile) {
-      console.error("Profile não existe");
-      return;
-    }
+    if (!profile) return;
+    await saveRemoteProfile({ bio });
+    setProfile({ ...profile, bio, updatedAt: new Date().toISOString() });
+  };
 
-    console.log("Atualizando bio para:", bio);
+  const updateLocation = async (location: string) => {
+    if (!profile) return;
+    await saveRemoteProfile({ location });
+    setProfile({ ...profile, location, updatedAt: new Date().toISOString() });
+  };
 
-    const updatedProfile = {
-      ...profile,
-      bio,
-    };
+  const updateFavoritesBrand = async (brand: string) => {
+    if (!profile) return;
+    await saveRemoteProfile({ favoritesBrand: brand });
+    setProfile({ ...profile, favoritesBrand: brand, updatedAt: new Date().toISOString() });
+  };
 
-    await saveProfile(updatedProfile);
-    console.log("Bio atualizada no profile");
+  const toggleShowFavorites = async () => {
+    if (!profile) return;
+    const showFavorites = !profile.showFavorites;
+    await saveRemoteProfile({ showFavorites });
+    setProfile({ ...profile, showFavorites, updatedAt: new Date().toISOString() });
+  };
+
+  const toggleShowStats = async () => {
+    if (!profile) return;
+    const showStats = !profile.showStats;
+    await saveRemoteProfile({ showStats });
+    setProfile({ ...profile, showStats, updatedAt: new Date().toISOString() });
   };
 
   const updateProfileImage = async () => {
-    if (!profile) {
-      console.error("Profile não existe");
-      return;
-    }
+    if (!profile) return;
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (status !== "granted") {
       alert("Precisamos de permissão para acessar suas fotos!");
       return;
@@ -179,26 +154,16 @@ export const UserProfileProvider: React.FC<UserProfileProviderProps> = ({
     });
 
     if (!result.canceled && result.assets[0]) {
-      console.log("Atualizando foto de perfil");
-
-      const updatedProfile = {
-        ...profile,
-        profileImage: result.assets[0].uri,
-      };
-
-      await saveProfile(updatedProfile);
-      console.log("Foto de perfil atualizada");
+      const updatedImages = { profileImage: result.assets[0].uri, coverImage: profile.coverImage };
+      await saveLocalImages(updatedImages);
+      setProfile({ ...profile, profileImage: result.assets[0].uri, updatedAt: new Date().toISOString() });
     }
   };
 
   const updateCoverImage = async () => {
-    if (!profile) {
-      console.error("Profile não existe");
-      return;
-    }
+    if (!profile) return;
 
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
-
     if (status !== "granted") {
       alert("Precisamos de permissão para acessar suas fotos!");
       return;
@@ -212,89 +177,17 @@ export const UserProfileProvider: React.FC<UserProfileProviderProps> = ({
     });
 
     if (!result.canceled && result.assets[0]) {
-      console.log("Atualizando foto de capa");
-
-      const updatedProfile = {
-        ...profile,
-        coverImage: result.assets[0].uri,
-      };
-
-      await saveProfile(updatedProfile);
-      console.log("Foto de capa atualizada");
+      const updatedImages = { profileImage: profile.profileImage, coverImage: result.assets[0].uri };
+      await saveLocalImages(updatedImages);
+      setProfile({ ...profile, coverImage: result.assets[0].uri, updatedAt: new Date().toISOString() });
     }
   };
 
   const removeProfileImage = async () => {
-    if (!profile) {
-      console.error("Profile não existe");
-      return;
-    }
-
-    console.log("Removendo foto de perfil");
-
-    const updatedProfile = {
-      ...profile,
-      profileImage: null,
-    };
-
-    await saveProfile(updatedProfile);
-    console.log("Foto de perfil removida");
-  };
-
-  const updateLocation = async (location: string) => {
-    if (!profile) {
-      console.error("Profile não existe");
-      return;
-    }
-
-    console.log("Atualizando localização para:", location);
-
-    const updatedProfile = {
-      ...profile,
-      location,
-    };
-
-    await saveProfile(updatedProfile);
-    console.log("Localização atualizada no profile");
-  };
-
-  const updateFavoritesBrand = async (brand: string) => {
-    if (!profile) {
-      console.error("Profile não existe");
-      return;
-    }
-
-    console.log("Atualizando marca favorita para:", brand);
-
-    const updatedProfile = {
-      ...profile,
-      favoritesBrand: brand,
-    };
-
-    await saveProfile(updatedProfile);
-    console.log("Marca favorita atualizada no profile");
-  };
-
-  const toggleShowFavorites = async () => {
     if (!profile) return;
-
-    const updatedProfile = {
-      ...profile,
-      showFavorites: !profile.showFavorites,
-    };
-
-    await saveProfile(updatedProfile);
-  };
-
-  const toggleShowStats = async () => {
-    if (!profile) return;
-
-    const updatedProfile = {
-      ...profile,
-      showStats: !profile.showStats,
-    };
-
-    await saveProfile(updatedProfile);
+    const updatedImages = { profileImage: null, coverImage: profile.coverImage };
+    await saveLocalImages(updatedImages);
+    setProfile({ ...profile, profileImage: null, updatedAt: new Date().toISOString() });
   };
 
   const getProfileCompletionPercentage = (): number => {
@@ -310,30 +203,20 @@ export const UserProfileProvider: React.FC<UserProfileProviderProps> = ({
     ];
 
     const weights = [15, 15, 20, 15, 15, 20];
-    let total = 0;
-
-    fields.forEach((field, index) => {
-      if (field) {
-        total += weights[index];
-      }
-    });
-
-    return total;
+    return fields.reduce((total, filled, i) => total + (filled ? weights[i] : 0), 0);
   };
 
-  const isProfileComplete = (): boolean => {
-    return getProfileCompletionPercentage() === 100;
-  };
+  const isProfileComplete = (): boolean => getProfileCompletionPercentage() === 100;
 
   const reloadProfile = async () => {
-    console.log("Recarregando perfil...");
     await loadProfile();
   };
 
   const resetProfile = async () => {
     if (!profile) return;
-
-    const resetProfile: UserProfile = {
+    await saveRemoteProfile({ bio: "", location: "", favoritesBrand: "", showFavorites: true, showStats: true });
+    await saveLocalImages({ profileImage: null, coverImage: null });
+    setProfile({
       ...profile,
       bio: "",
       profileImage: null,
@@ -342,9 +225,8 @@ export const UserProfileProvider: React.FC<UserProfileProviderProps> = ({
       favoritesBrand: "",
       showFavorites: true,
       showStats: true,
-    };
-
-    await saveProfile(resetProfile);
+      updatedAt: new Date().toISOString(),
+    });
   };
 
   return (

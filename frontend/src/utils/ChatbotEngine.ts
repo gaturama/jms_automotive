@@ -297,7 +297,7 @@ export class ChatbotEngine {
           `💰 Preço médio: R$ ${(avgPrice / 1000000).toFixed(2)}M\n\n` +
           `Modelos:\n` +
           carsByBrand
-            .map((car, i) => `${i + 1}. ${car.model} - ${car.horsepower}cv`)
+            .map((car, i) => `${i + 1}. ${car.carModel} - ${car.horsepower}cv`)
             .join("\n"),
         suggestions: [
           "Mostre o mais caro dessa marca",

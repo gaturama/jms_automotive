@@ -2,10 +2,10 @@ import { Car } from "../navigation/car";
 
 export const MOCK_CARS: Car[] = [
   {
-    id: "1",
+    _id: "1",
     name: "Nissan Skyline GTR R34",
     brand: "Nissan",
-    model: "Skyline GTR R34",
+    carModel: "Skyline GTR R34",
     year: 1999,
     engine: "2.6L Biturbo",
     horsepower: 280,
@@ -18,13 +18,13 @@ export const MOCK_CARS: Car[] = [
     weight: 1540,
     price: 1200000,
     description:
-      "O Nissan Skyline GT-R R34 é um ícone absoluto da cultura automotiva — um carro que transcendeu gerações, pistas e videogames para se tornar lenda. Sob o capô, o lendário RB26DETT, um seis-cilindros em linha biturbo, entrega potência com enorme margem para preparação, acompanhado do avançado sistema de tração integral ATTESA E-TS, garantindo tração e controle impecáveis.",
+      "O Nissan Skyline GT-R R34 é um ícone absoluto da cultura automotiva — um carro que transcendeu gerações, pistas e v_ideogames para se tornar lenda. Sob o capô, o lendário RB26DETT, um seis-cilindros em linha biturbo, entrega potência com enorme margem para preparação, acompanhado do avançado sistema de tração integral ATTESA E-TS, garantindo tração e controle impecáveis.",
   },
   {
-    id: "2",
+    _id: "2",
     name: "Porsche 911 Turbo S",
     brand: "Porsche",
-    model: "911 Turbo S",
+    carModel: "911 Turbo S",
     year: 2024,
     engine: "3.8L Boxer 6 Twin-Turbo",
     horsepower: 650,
@@ -40,10 +40,10 @@ export const MOCK_CARS: Car[] = [
       "O Porsche 911 Turbo S representa o ápice da engenharia esportiva alemã. Com seu icônico motor boxer de seis cilindros biturbo montado na traseira, oferece uma experiência de condução incomparável. Combina luxo refinado com desempenho brutal, sendo capaz de surpreender tanto em pistas quanto no uso diário.",
   },
   {
-    id: "3",
+    _id: "3",
     name: "Ferrari F8 Tributo",
     brand: "Ferrari",
-    model: "F8 Tributo",
+    carModel: "F8 Tributo",
     year: 2022,
     engine: "3.9L V8 Twin-Turbo",
     horsepower: 720,
@@ -59,10 +59,10 @@ export const MOCK_CARS: Car[] = [
       "A Ferrari F8 Tributo é uma homenagem ao motor V8 mais premiado da história da Ferrari. Com design aerodinâmico agressivo e tecnologia de ponta, este superesportivo italiano oferece uma experiência visceral de pilotagem. Cada detalhe foi pensado para maximizar performance e emoção.",
   },
   {
-    id: "4",
+    _id: "4",
     name: "Lamborghini Huracán EVO",
     brand: "Lamborghini",
-    model: "Huracán EVO",
+    carModel: "Huracán EVO",
     year: 2023,
     engine: "5.2L V10 Aspirado",
     horsepower: 640,
@@ -78,10 +78,10 @@ export const MOCK_CARS: Car[] = [
       "O Lamborghini Huracán EVO traz o DNA da marca italiana de forma ainda mais evoluída. Seu motor V10 de aspiração natural entrega um som inconfundível, enquanto a tecnologia LDVI (Lamborghini Dinamica Veicolo Integrata) antecipa suas necessidades e otimiza o desempenho em tempo real.",
   },
   {
-    id: "5",
+    _id: "5",
     name: "Mercedes-AMG GT R",
     brand: "Mercedes-AMG",
-    model: "AMG GT R",
+    carModel: "AMG GT R",
     year: 2021,
     engine: "4.0L V8 Biturbo",
     horsepower: 585,
@@ -97,10 +97,10 @@ export const MOCK_CARS: Car[] = [
       'O Mercedes-AMG GT R, apelidado de "A Fera do Inferno Verde", foi desenvolvido e afinado em Nürburgring. Com suspensão adaptativa, aerodinâmica ativa e um motor V8 biturbo devastador, oferece o equilíbrio perfeito entre conforto e performance extrema.',
   },
   {
-    id: "6",
+    _id: "6",
     name: "Audi R8 Performance",
     brand: "Audi",
-    model: "R8 V10 Performance",
+    carModel: "R8 V10 Performance",
     year: 2022,
     engine: "5.2L V10 Aspirado",
     horsepower: 610,
@@ -116,10 +116,10 @@ export const MOCK_CARS: Car[] = [
       "O Audi R8 V10 Performance combina a tecnologia de corrida da Audi Sport com o luxo característico da marca alemã. Compartilha o motor com o Lamborghini Huracán, mas oferece uma experiência mais refinada e cotidiana. O sistema Quattro garante tração excepcional em qualquer condição.",
   },
   {
-    id: "7",
+    _id: "7",
     name: "Bentley Continental GT",
     brand: "Bentley",
-    model: "Continental GT",
+    carModel: "Continental GT",
     year: 2020,
     engine: "4.0L Twin-Turbo V8",
     horsepower: 550,
@@ -135,10 +135,10 @@ export const MOCK_CARS: Car[] = [
       "O Bentley Continental GT V8 é a definição de luxo com alma esportiva. Debaixo do capô, o motor V8 biturbo entrega potência e torque de sobra, garantindo acelerações fortes e um ronco marcante — tudo isso sem abrir mão da suavidade característica da Bentley.",
   },
   {
-    id: "8",
+    _id: "8",
     name: "Koenigsegg Regera",
     brand: "Koenigsegg",
-    model: "Regera",
+    carModel: "Regera",
     year: 2016,
     engine: "5.0L Twin-Turbo V8 Híbrido",
     horsepower: 1500,
@@ -154,10 +154,10 @@ export const MOCK_CARS: Car[] = [
       "O Koenigsegg Regera é o ápice da engenharia automotiva moderna — um hipercarro híbrido sueco que redefine o que significa desempenho sem concessões. Com um sistema híbrido inovador combinando um motor V8 twin-turbo de alta potência com motores elétricos integrados, o Regera entrega uma aceleração brutal, torque instantâneo e tecnologia de transmissão direta que elimina a necessidade de uma caixa de câmbio tradicional.",
   },
   {
-    id: "9",
+    _id: "9",
     name: "BMW M3 Competition",
     brand: "BMW",
-    model: "M3 Competition",
+    carModel: "M3 Competition",
     year: 2023,
     engine: "3.0L Twin-Turbo",
     horsepower: 510,
@@ -173,10 +173,10 @@ export const MOCK_CARS: Car[] = [
       "O BMW M3 Competition é a síntese perfeita entre desempenho bruto e usabilidade diária. Com um motor twin-turbo de 6 cilindros em linha que entrega uma potência vigorosa e um som inconfundível, essa versão Competition eleva o M3 a um patamar ainda mais esportivo — resposta instantânea do acelerador, aceleração feroz e controle preciso em qualquer curva.",
   },
   {
-    id: "10",
+    _id: "10",
     name: "McLaren Senna",
     brand: "McLaren",
-    model: "Senna",
+    carModel: "Senna",
     year: 2018,
     engine: "4.0L Twin-Turbo V8",
     horsepower: 800,
@@ -192,10 +192,10 @@ export const MOCK_CARS: Car[] = [
       "O McLaren Senna é a mais pura expressão da obsessão pela performance — um hipercarro projetado para dominar pistas, inspirado no lendário piloto Ayrton Senna. Com um motor V8 biturbo de alta rotação e uma relação peso-potência impressionante, ele entrega aceleração visceral, respostas instantâneas e performance cirúrgica em cada curva.",
   },
   {
-    id: "11",
+    _id: "11",
     name: "Ford Mustang GT Performance",
     brand: "Ford",
-    model: "Mustang GT Performance",
+    carModel: "Mustang GT Performance",
     year: 2025,
     engine: "5.0L V8 Aspirado",
     horsepower: 492,
@@ -211,10 +211,10 @@ export const MOCK_CARS: Car[] = [
       "O Ford Mustang GT Performance é a expressão mais visceral da tradição americana de muscle cars: um carro que combina potência bruta, presença dominante e emoção ao volante. No coração dele está o icônico motor V8 5.0 L, oferecendo um roar profundo e uma entrega de potência que empurra com autoridade em qualquer faixa de rotação.",
   },
   {
-    id: "12",
+    _id: "12",
     name: "Bugatti Chiron Sport",
     brand: "Bugatti",
-    model: "Chiron Sport",
+    carModel: "Chiron Sport",
     year: 2019,
     engine: "8.0L W16 Quadriturbo",
     horsepower: 1500,
@@ -230,10 +230,10 @@ export const MOCK_CARS: Car[] = [
       "O Bugatti Chiron Sport é a personificação extrema do luxo e da velocidade — um hipercarro que eleva o que é possível em performance, design e tecnologia. Com um poderoso motor W16 quadriturbo, ele entrega uma potência colossal capaz de levar o carro a velocidades que desafiam limites, tudo com uma resposta instantânea e precisão inigualável.",
   },
   {
-    id: "13",
+    _id: "13",
     name: "Aston Martin Vantage",
     brand: "Aston Martin",
-    model: "Vantage",
+    carModel: "Vantage",
     year: 2025,
     engine: "4.0L V8 Twin-Turbo",
     horsepower: 665,
@@ -249,10 +249,10 @@ export const MOCK_CARS: Car[] = [
       "O Aston Martin Vantage é a perfeita união entre elegância britânica e performance visceral. Com um motor potente — geralmente um V8 biturbo capaz de entregar uma aceleração empolgante e um som grave e cativante — o Vantage combina desempenho emocionante com uma presença marcante.",
   },
   {
-    id: "14",
+    _id: "14",
     name: "Dodge Charger STR Hellcat",
     brand: "Dodge",
-    model: "Charger STR Hellcat",
+    carModel: "Charger STR Hellcat",
     year: 2019,
     engine: "6.2L Supercharged HEMI V8",
     horsepower: 717,
@@ -268,10 +268,10 @@ export const MOCK_CARS: Car[] = [
       "O Dodge Charger SRT Hellcat é a pura definição de muscle car americano sem desculpas — um sedã de quatro portas com um motor V8 supercharged que entrega potência monstruosa, torque avassalador e desempenho visceral desde o primeiro toque no acelerador.",
   },
   {
-    id: "15",
+    _id: "15",
     name: "Chevrolet Corvette C8 Stingray",
     brand: "Chevrolet",
-    model: "Corvette C8 Stingray",
+    carModel: "Corvette C8 Stingray",
     year: 2020,
     engine: "6.2L V8 aspirado",
     horsepower: 502,
@@ -287,10 +287,10 @@ export const MOCK_CARS: Car[] = [
       "O Chevrolet Corvette C8 Stingray representa uma revolução na história do Corvette: um esportivo de motor central que entrega desempenho, precisão e design com uma proposta verdadeiramente emocionante. Com um potente motor V8 aspirado estrategicamente posicionado atrás do motorista, o C8 oferece acelerações vigorosas, equilíbrio dinâmico e uma experiência de condução que rivaliza com muitos carros superesportivos.",
   },
   {
-    id: "16",
+    _id: "16",
     name: "Ford GT",
     brand: "Ford",
-    model: "GT",
+    carModel: "GT",
     year: 2017,
     engine: "3.5 V6 EcoBoost Biturbo",
     horsepower: 656,
@@ -306,10 +306,10 @@ export const MOCK_CARS: Car[] = [
       "O Ford GT é a expressão máxima do desempenho e da engenharia automotiva de alto nível, projetado para ser um supercarro perfeito tanto nas pistas quanto nas ruas. Com um motor EcoBoost V6 biturbo de alta performance, aliado a uma aerodinâmica avançada inspirada nas maiores conquistas do automobilismo, o Ford GT entrega acelerações explosivas, respostas instantâneas e estabilidade impecável em velocidades extremas",
   },
   {
-    id: "17",
+    _id: "17",
     name: "Volkswagen Golf R",
     brand: "Volkswagen",
-    model: "Golf R",
+    carModel: "Golf R",
     year: 2025,
     engine: "2.0L TSI",
     horsepower: 333,
@@ -325,10 +325,10 @@ export const MOCK_CARS: Car[] = [
       "O Volkswagen Golf R é a evolução definitiva do hot hatch alemão — combinando tecnologia avançada, tração inteligente e performance explosiva em um pacote compacto e extremamente refinado.",
   },
   {
-    id: "18",
+    _id: "18",
     name: "Lexus LS 500",
     brand: "Lexus",
-    model: "LS 500",
+    carModel: "LS 500",
     year: 2021,
     engine: "3.0L V6 Twin-Turbo",
     horsepower: 416,
@@ -344,10 +344,10 @@ export const MOCK_CARS: Car[] = [
     "O Lexus LS 500 é o sedã de luxo que representa o equilíbrio perfeito entre sofisticação refinada, conforto absoluto e tecnologia de ponta. Projetado para quem busca uma experiência de condução envolvente sem abrir mão de serenidade, o LS 500 combina presença elegante com desempenho suave e potente."
   },
   {
-    id: "19",
+    _id: "19",
     name: "Toyota Camry",
     brand: "Toyota",
-    model: "Camry",
+    carModel: "Camry",
     year: 2021, 
     engine: "3.5L V6",
     horsepower: 310,
@@ -363,10 +363,10 @@ export const MOCK_CARS: Car[] = [
     "O Toyota Camry é um sedã médio que equilibra conforto, confiabilidade e performance no dia a dia com uma presença elegante e uma dirigibilidade segura. Projetado para quem busca um carro versátil — seja para rotinas urbanas, viagens ou trajetos longos — o Camry combina eficiência, tecnologia e um visual moderno."
   },
   {
-    id: "20",
+    _id: "20",
     name: "Rolls-Royce Phantom",
     brand: "Rolls-Royce",
-    model: "Phantom",
+    carModel: "Phantom",
     year: 2023,
     engine: "6.7L V12 Twin-Turbo",
     horsepower: 571,
@@ -384,7 +384,7 @@ export const MOCK_CARS: Car[] = [
 ];
 
 export const getCarById = (id: string): Car | undefined => {
-  return MOCK_CARS.find((car) => car.id === id);
+  return MOCK_CARS.find((car) => car._id === id);
 };
 
 export const getCarsByBrand = (brand: string): Car[] => {

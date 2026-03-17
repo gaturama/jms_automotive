@@ -78,7 +78,6 @@ export default function LoginScreen({ navigation }: Props) {
           duration: 400,
           useNativeDriver: true,
         }),
-
         Animated.parallel([
           Animated.spring(logoScale, {
             toValue: 1,
@@ -93,7 +92,6 @@ export default function LoginScreen({ navigation }: Props) {
             useNativeDriver: true,
           }),
         ]),
-
         Animated.parallel([
           Animated.spring(cardSlide, {
             toValue: 0,
@@ -108,7 +106,6 @@ export default function LoginScreen({ navigation }: Props) {
             useNativeDriver: true,
           }),
         ]),
-
         Animated.stagger(100, [
           Animated.spring(emailSlide, {
             toValue: 0,
@@ -181,6 +178,7 @@ export default function LoginScreen({ navigation }: Props) {
           }),
         ]),
       ).start();
+
       checkBiometricAvailability();
     }, []),
   );
@@ -198,13 +196,8 @@ export default function LoginScreen({ navigation }: Props) {
 
       if (enabled) {
         const userEmail = await BiometricAuthService.getBiometricUserEmail();
-        if (userEmail) {
-          setEmail(userEmail);
-        }
+        if (userEmail) setEmail(userEmail);
       }
-
-      console.log("Biometria disponível:", type);
-      console.log("Biometria habilitada:", enabled);
     }
   };
 
@@ -243,17 +236,12 @@ export default function LoginScreen({ navigation }: Props) {
 
       if (result.success) {
         HapticFeedback.success();
-
         const savedPassword = await getSavedPassword(userEmail);
 
         if (savedPassword) {
           const loginResult = await login(userEmail, savedPassword);
-
           if (loginResult.success) {
-            navigation.reset({
-              index: 0,
-              routes: [{ name: "Home" }],
-            });
+            navigation.reset({ index: 0, routes: [{ name: "Home" }] });
           } else {
             HapticFeedback.error();
             Alert.alert("Erro", loginResult.message);
@@ -266,11 +254,9 @@ export default function LoginScreen({ navigation }: Props) {
         }
       } else {
         HapticFeedback.error();
-        console.log("Biometria cancelada ou falhou");
       }
     } catch (error) {
       HapticFeedback.error();
-      console.error("Erro no login biométrico:", error);
       Alert.alert("Erro", "Não foi possível fazer login com biometria.");
     } finally {
       setIsLoading(false);
@@ -311,15 +297,10 @@ export default function LoginScreen({ navigation }: Props) {
   };
 
   const handlePressOut = () => {
-    Animated.spring(buttonScale, {
-      toValue: 1,
-      useNativeDriver: true,
-    }).start();
+    Animated.spring(buttonScale, { toValue: 1, useNativeDriver: true }).start();
   };
 
-  const toggleShowPassword = () => {
-    setShowPassword((prev) => !prev);
-  };
+  const toggleShowPassword = () => setShowPassword((prev) => !prev);
 
   const handleLogin = async () => {
     if (!email || !password) {
@@ -345,10 +326,7 @@ export default function LoginScreen({ navigation }: Props) {
               `Habilitar ${biometricType}?`,
               `Use ${biometricType} para fazer login mais rápido na próxima vez.`,
               [
-                {
-                  text: "Agora não",
-                  style: "cancel",
-                },
+                { text: "Agora não", style: "cancel" },
                 {
                   text: "Habilitar",
                   onPress: async () => {
@@ -371,15 +349,9 @@ export default function LoginScreen({ navigation }: Props) {
             duration: 300,
             useNativeDriver: true,
           }),
-          Animated.spring(cardScale, {
-            toValue: 0.8,
-            useNativeDriver: true,
-          }),
+          Animated.spring(cardScale, { toValue: 0.8, useNativeDriver: true }),
         ]).start(() => {
-          navigation.reset({
-            index: 0,
-            routes: [{ name: "Home" }],
-          });
+          navigation.reset({ index: 0, routes: [{ name: "Home" }] });
         });
       } else {
         HapticFeedback.error();
@@ -404,8 +376,10 @@ export default function LoginScreen({ navigation }: Props) {
     password: string,
   ): Promise<void> => {
     try {
-      const key = `@CarShowroom:savedPassword:${email}`;
-      await AsyncStorage.setItem(key, password);
+      await AsyncStorage.setItem(
+        `@CarShowroom:savedPassword:${email}`,
+        password,
+      );
     } catch (error) {
       console.error("Erro ao salvar senha:", error);
     }
@@ -413,16 +387,13 @@ export default function LoginScreen({ navigation }: Props) {
 
   const getSavedPassword = async (email: string): Promise<string | null> => {
     try {
-      const key = `@CarShowroom:savedPassword:${email}`;
-      return await AsyncStorage.getItem(key);
-    } catch (error) {
+      return await AsyncStorage.getItem(`@CarShowroom:savedPassword:${email}`);
+    } catch {
       return null;
     }
   };
 
-  const handleRegister = () => {
-    navigation.navigate("Register");
-  };
+  const handleRegister = () => navigation.navigate("Register");
 
   const closeAlert = () => {
     setAlertVisible(false);
@@ -441,44 +412,32 @@ export default function LoginScreen({ navigation }: Props) {
         barStyle={colors.statusBarStyle}
         backgroundColor={colors.background}
       />
+
       <View style={styles.backgroundParticles}>
         <Animated.View
           style={[
             styles.particle,
             styles.particle1,
-            {
-              transform: [{ translateY: particle1Float }],
-            },
+            { transform: [{ translateY: particle1Float }] },
           ]}
         />
         <Animated.View
           style={[
             styles.particle,
             styles.particle2,
-            {
-              transform: [{ translateY: particle2Float }],
-            },
+            { transform: [{ translateY: particle2Float }] },
           ]}
         />
         <Animated.View
           style={[
             styles.particle,
             styles.particle3,
-            {
-              transform: [{ translateY: particle3Float }],
-            },
+            { transform: [{ translateY: particle3Float }] },
           ]}
         />
       </View>
 
-      <Animated.View
-        style={[
-          styles.contentContainer,
-          {
-            opacity: fadeAnim,
-          },
-        ]}
-      >
+      <Animated.View style={[styles.contentContainer, { opacity: fadeAnim }]}>
         <Animated.View
           style={[
             styles.logoContainer,
@@ -516,9 +475,7 @@ export default function LoginScreen({ navigation }: Props) {
           <Animated.View
             style={[
               styles.inputContainer,
-              {
-                transform: [{ translateY: emailSlide }],
-              },
+              { transform: [{ translateY: emailSlide }] },
             ]}
           >
             <Text style={styles.inputLabel}>Email</Text>
@@ -538,9 +495,7 @@ export default function LoginScreen({ navigation }: Props) {
           <Animated.View
             style={[
               styles.inputContainer,
-              {
-                transform: [{ translateY: passwordSlide }],
-              },
+              { transform: [{ translateY: passwordSlide }] },
             ]}
           >
             <Text style={styles.inputLabel}>Senha</Text>
@@ -590,6 +545,35 @@ export default function LoginScreen({ navigation }: Props) {
               )}
             </TouchableOpacity>
           </Animated.View>
+
+          {biometricAvailable && biometricEnabled && (
+            <Animated.View
+              style={{ transform: [{ scale: biometricScale }], marginTop: 12 }}
+            >
+              <TouchableOpacity
+                style={[
+                  styles.button,
+                  {
+                    backgroundColor: "transparent",
+                    borderWidth: 1,
+                    borderColor: colors.accent,
+                  },
+                ]}
+                onPress={handleBiometricLogin}
+                disabled={isLoading}
+              >
+                <Ionicons name="finger-print" size={22} color={colors.accent} />
+                <Text
+                  style={[
+                    styles.buttonText,
+                    { color: colors.accent, marginLeft: 8 },
+                  ]}
+                >
+                  Entrar com {biometricType}
+                </Text>
+              </TouchableOpacity>
+            </Animated.View>
+          )}
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />

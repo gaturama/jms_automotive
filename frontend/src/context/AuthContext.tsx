@@ -5,24 +5,33 @@ import {
   useEffect,
   useState,
 } from "react";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { authService } from "../service/auth.service";
+import { userService } from "../service/user.service";
+import { getToken, removeToken } from "../utils/Token";
 
 interface User {
-  id: string;
+  _id: string;
   name: string;
   email: string;
-  phone: string;
-  password: string;
+  phone?: string;
   dateBirth?: string;
+  avatar?: string;
+  bio?: string;
+  role: "user" | "admin";
+  biometricEnabled: boolean;
+  notificationEnabled: boolean;
 }
 
 interface AuthContextData {
-  users: User[];
   currentUser: User | null;
   isAuthenticated: boolean;
-  register: (
-    userData: Omit<User, "id">,
-  ) => Promise<{ success: boolean; message: string }>;
+  register: (userData: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    dateBirth?: string;
+  }) => Promise<{ success: boolean; message: string }>;
   login: (
     email: string,
     password: string,
@@ -44,91 +53,59 @@ interface AuthProviderProps {
 }
 
 export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
-  const [users, setUsers] = useState<User[]>([]);
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    loadStorageData();
+    checkAuth();
   }, []);
 
-  const loadStorageData = async () => {
+  const checkAuth = async () => {
     try {
       setLoading(true);
-
-      const usersData = await AsyncStorage.getItem(USERS_STORAGE_KEY);
-      if (usersData) {
-        setUsers(JSON.parse(usersData));
+      const token = await getToken();
+      if (token) {
+        const user = await userService.getMe();
+        setCurrentUser(user);
       }
-
-      const currentUserData = await AsyncStorage.getItem(CURRENT_USER_KEY);
-      if (currentUserData) {
-        setCurrentUser(JSON.parse(currentUserData));
-      }
-    } catch (error) {
-      console.error("Erro ao carregar dados:", error);
+    } catch {
+      await removeToken();
+      setCurrentUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const saveUsers = async (newUsers: User[]) => {
-    try {
-      await AsyncStorage.setItem(USERS_STORAGE_KEY, JSON.stringify(newUsers));
-      setUsers(newUsers);
-    } catch (error) {
-      console.error("Erro ao salvar usuários:", error);
-      throw error;
-    }
-  };
+  register: (userData: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    dateBirth?: string;
+  }) => Promise<{ success: boolean; message: string }>;
 
-  const saveCurrentUser = async (user: User | null) => {
+  const register = async (userData: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    dateBirth?: string;
+  }): Promise<{ success: boolean; message: string }> => {
     try {
-      if (user) {
-        await AsyncStorage.setItem(CURRENT_USER_KEY, JSON.stringify(user));
-      } else {
-        await AsyncStorage.removeItem(CURRENT_USER_KEY);
-      }
-      setCurrentUser(user);
-    } catch (error) {
-      console.error("Error ao salvar usuário atual:", error);
-      throw error;
-    }
-  };
-
-  const register = async (
-    userData: Omit<User, "id">,
-  ): Promise<{ success: boolean; message: string }> => {
-    try {
-      const emailExists = users.find(
-        (u) => u.email.toLowerCase() === userData.email.toLowerCase(),
+      const user = await authService.register(
+        userData.name,
+        userData.email,
+        userData.password,
+        userData.phone,
+        userData.dateBirth,
       );
-
-      if (emailExists) {
-        return {
-          success: false,
-          message: "Este email já está cadastrado!",
-        };
-      }
-
-      const newUser: User = {
-        ...userData,
-        id: Date.now().toString(),
-      };
-
-      const updatedUsers = [...users, newUser];
-      await saveUsers(updatedUsers);
-      await saveCurrentUser(newUser);
-
-      return {
-        success: true,
-        message: `Bem-vindo, ${newUser.name}!`,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: "Erro ao cadastrar usuário. Tente novamente.",
-      };
+      setCurrentUser(user);
+      return { success: true, message: `Bem-vindo, ${user.name}!` };
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        "Erro ao cadastrar usuário. Tente novamente.";
+      return { success: false, message };
     }
   };
 
@@ -137,36 +114,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     password: string,
   ): Promise<{ success: boolean; message: string }> => {
     try {
-      const user = users.find(
-        (u) =>
-          u.email.toLowerCase() === email.toLowerCase() &&
-          u.password === password,
-      );
-
-      if (!user) {
-        return {
-          success: false,
-          message: "Email ou senha incorretos!",
-        };
-      }
-
-      await saveCurrentUser(user);
-
-      return {
-        success: true,
-        message: `Bem-vindo de volta, ${user.name}!`,
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: "Erro ao fazer login. Tente novamente.",
-      };
+      const user = await authService.login(email, password);
+      setCurrentUser(user);
+      return { success: true, message: `Bem-vindo de volta, ${user.name}!` };
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message || "Email ou senha incorretos!";
+      return { success: false, message };
     }
   };
 
   const logout = async () => {
     try {
-      await saveCurrentUser(null);
+      await authService.logout();
+      setCurrentUser(null);
     } catch (error) {
       console.error("Erro ao fazer logout:", error);
     }
@@ -176,42 +137,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     userData: Partial<User>,
   ): Promise<{ success: boolean; message: string }> => {
     try {
-      if (!currentUser) {
-        return {
-          success: false,
-          message: "Nenhum usuário logado!",
-        };
-      }
-
-      const updatedUser: User = {
-        ...currentUser,
-        ...userData,
-        id: currentUser.id,
-      };
-
-      const updatedUsers = users.map((u) =>
-        u.id === currentUser.id ? updatedUser : u,
-      );
-
-      await saveUsers(updatedUsers);
-      await saveCurrentUser(updatedUser);
-
-      return {
-        success: true,
-        message: "Informações atualizadas com sucesso!",
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: "Erro ao atualizar informações. Tente novamente.",
-      };
+      const updated = await userService.updateProfile(userData);
+      setCurrentUser(updated);
+      return { success: true, message: "Informações atualizadas com sucesso!" };
+    } catch (error: any) {
+      const message =
+        error.response?.data?.message ||
+        "Erro ao atualizar informações. Tente novamente.";
+      return { success: false, message };
     }
   };
 
   return (
     <AuthContext.Provider
       value={{
-        users,
         currentUser,
         isAuthenticated: currentUser !== null,
         register,

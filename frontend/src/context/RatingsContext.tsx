@@ -1,19 +1,23 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from './AuthContext';
+import { reviewService } from '../service/review.service';
 
 export interface Review {
-  id: string;
+  _id: string;
   carId: string;
-  userId: string;
-  userName: string;
-  rating: number; 
+  user: {
+    _id: string;
+    name: string;
+    avatar?: string;
+  };
+  rating: number;
   comment: string;
-  date: string;
+  createdAt: string;
 }
 
 interface RatingsContextData {
   reviews: Review[];
+  loadCarReviews: (carId: string) => Promise<void>;
   addReview: (carId: string, rating: number, comment: string) => Promise<{ success: boolean; message: string }>;
   getCarReviews: (carId: string) => Review[];
   getCarAverageRating: (carId: string) => number;
@@ -24,8 +28,6 @@ interface RatingsContextData {
 
 const RatingsContext = createContext<RatingsContextData>({} as RatingsContextData);
 
-const REVIEWS_STORAGE_KEY = '@CarShowroom:reviews';
-
 interface RatingsProviderProps {
   children: ReactNode;
 }
@@ -34,28 +36,15 @@ export const RatingsProvider: React.FC<RatingsProviderProps> = ({ children }) =>
   const [reviews, setReviews] = useState<Review[]>([]);
   const { currentUser } = useAuth();
 
-  useEffect(() => {
-    loadReviews();
-  }, []);
-
-  const loadReviews = async () => {
+  const loadCarReviews = async (carId: string) => {
     try {
-      const reviewsData = await AsyncStorage.getItem(REVIEWS_STORAGE_KEY);
-      if (reviewsData) {
-        setReviews(JSON.parse(reviewsData));
-      }
+      const data = await reviewService.getCarReviews(carId);
+      setReviews((prev) => [
+        ...prev.filter((r) => r.carId !== carId),
+        ...data,
+      ]);
     } catch (error) {
       console.error('Erro ao carregar avaliações:', error);
-    }
-  };
-
-  const saveReviews = async (newReviews: Review[]) => {
-    try {
-      await AsyncStorage.setItem(REVIEWS_STORAGE_KEY, JSON.stringify(newReviews));
-      setReviews(newReviews);
-    } catch (error) {
-      console.error('Erro ao salvar avaliações:', error);
-      throw error;
     }
   };
 
@@ -66,59 +55,24 @@ export const RatingsProvider: React.FC<RatingsProviderProps> = ({ children }) =>
   ): Promise<{ success: boolean; message: string }> => {
     try {
       if (!currentUser) {
-        return {
-          success: false,
-          message: 'Você precisa estar logado para avaliar!',
-        };
+        return { success: false, message: 'Você precisa estar logado para avaliar!' };
       }
 
       if (rating < 1 || rating > 5) {
-        return {
-          success: false,
-          message: 'Avaliação deve ser entre 1 e 5 turbinas!',
-        };
+        return { success: false, message: 'Avaliação deve ser entre 1 e 5 turbinas!' };
       }
 
       if (!comment.trim()) {
-        return {
-          success: false,
-          message: 'Por favor, escreva um comentário!',
-        };
+        return { success: false, message: 'Por favor, escreva um comentário!' };
       }
 
-      const existingReview = reviews.find(
-        (r) => r.carId === carId && r.userId === currentUser.id
-      );
+      const newReview = await reviewService.createReview(carId, rating, comment.trim());
+      setReviews((prev) => [newReview, ...prev]);
 
-      if (existingReview) {
-        return {
-          success: false,
-          message: 'Você já avaliou este carro! Edite sua avaliação existente.',
-        };
-      }
-
-      const newReview: Review = {
-        id: Date.now().toString(),
-        carId,
-        userId: currentUser.id,
-        userName: currentUser.name,
-        rating,
-        comment: comment.trim(),
-        date: new Date().toISOString(),
-      };
-
-      const updatedReviews = [...reviews, newReview];
-      await saveReviews(updatedReviews);
-
-      return {
-        success: true,
-        message: 'Avaliação enviada com sucesso!',
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Erro ao enviar avaliação. Tente novamente.',
-      };
+      return { success: true, message: 'Avaliação enviada com sucesso!' };
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao enviar avaliação. Tente novamente.';
+      return { success: false, message };
     }
   };
 
@@ -129,43 +83,27 @@ export const RatingsProvider: React.FC<RatingsProviderProps> = ({ children }) =>
   ): Promise<{ success: boolean; message: string }> => {
     try {
       if (rating < 1 || rating > 5) {
-        return {
-          success: false,
-          message: 'Avaliação deve ser entre 1 e 5 turbinas!',
-        };
+        return { success: false, message: 'Avaliação deve ser entre 1 e 5 turbinas!' };
       }
 
       if (!comment.trim()) {
-        return {
-          success: false,
-          message: 'Por favor, escreva um comentário!',
-        };
+        return { success: false, message: 'Por favor, escreva um comentário!' };
       }
 
-      const updatedReviews = reviews.map((review) =>
-        review.id === reviewId
-          ? { ...review, rating, comment: comment.trim(), date: new Date().toISOString() }
-          : review
-      );
+      const updated = await reviewService.updateReview(reviewId, rating, comment.trim());
+      setReviews((prev) => prev.map((r) => (r._id === reviewId ? updated : r)));
 
-      await saveReviews(updatedReviews);
-
-      return {
-        success: true,
-        message: 'Avaliação atualizada com sucesso!',
-      };
-    } catch (error) {
-      return {
-        success: false,
-        message: 'Erro ao atualizar avaliação. Tente novamente.',
-      };
+      return { success: true, message: 'Avaliação atualizada com sucesso!' };
+    } catch (error: any) {
+      const message = error.response?.data?.message || 'Erro ao atualizar avaliação. Tente novamente.';
+      return { success: false, message };
     }
   };
 
   const deleteReview = async (reviewId: string) => {
     try {
-      const updatedReviews = reviews.filter((review) => review.id !== reviewId);
-      await saveReviews(updatedReviews);
+      await reviewService.deleteReview(reviewId);
+      setReviews((prev) => prev.filter((r) => r._id !== reviewId));
     } catch (error) {
       console.error('Erro ao deletar avaliação:', error);
     }
@@ -173,29 +111,27 @@ export const RatingsProvider: React.FC<RatingsProviderProps> = ({ children }) =>
 
   const getCarReviews = (carId: string): Review[] => {
     return reviews
-      .filter((review) => review.carId === carId)
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
+      .filter((r) => r.carId === carId)
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
   };
 
   const getCarAverageRating = (carId: string): number => {
-    const carReviews = reviews.filter((review) => review.carId === carId);
+    const carReviews = reviews.filter((r) => r.carId === carId);
     if (carReviews.length === 0) return 0;
-
-    const sum = carReviews.reduce((acc, review) => acc + review.rating, 0);
+    const sum = carReviews.reduce((acc, r) => acc + r.rating, 0);
     return sum / carReviews.length;
   };
 
   const getUserReview = (carId: string): Review | undefined => {
     if (!currentUser) return undefined;
-    return reviews.find(
-      (review) => review.carId === carId && review.userId === currentUser.id
-    );
+    return reviews.find((r) => r.carId === carId && r.user._id === currentUser._id);
   };
 
   return (
     <RatingsContext.Provider
       value={{
         reviews,
+        loadCarReviews,
         addReview,
         getCarReviews,
         getCarAverageRating,

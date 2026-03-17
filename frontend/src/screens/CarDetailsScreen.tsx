@@ -30,6 +30,7 @@ import { useThemedStyles } from "../hooks/useThemedStyles";
 import CarDetailsModal from "../components/CarDetailsModal";
 import { RatingsSection } from "../components/RatingsSection";
 import { useViewHistory } from "../context/ViewHistoryContext";
+import { useRatings } from "../context/RatingsContext";
 import { ImageGalleryModal } from "../components/ImageGalleryModal";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -44,14 +45,16 @@ type Props = NativeStackScreenProps<RootStackParamList, "CarDetails">;
 export default function CarDetailsScreen({ navigation, route }: Props) {
   const { car } = route.params;
   const { isFavorite, toggleFavorite } = useFavorites();
-  const [favorites, setFavorites] = useState(isFavorite(car.id));
+  const [favorites, setFavorites] = useState(isFavorite(car._id));
   const [shareModalVisible, setShareModalVisible] = useState(false);
   const [galleryVisible, setGalleryVisible] = useState(false);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const { addToHistory } = useViewHistory();
-  const { recordCarView, recordFavorite, recordShare } = useStats();
-  const [refreshing, setRefreshing] = useState(false);
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const { addToHistory } = useViewHistory();
+  const { loadCarReviews } = useRatings();
+  const { recordCarView, recordFavorite, recordShare } = useStats();
 
   const {
     getCarImages,
@@ -87,17 +90,15 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
     ]).start();
 
     loadUnsplashImages();
-
     loadDataProgressively();
+
+    addToHistory(car);
+    recordCarView(car._id);
   }, []);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-
-    await Promise.all([handleRefreshImages(), loadDataProgressively()]);
-
-    setRefreshing(false);
-  };
+  useEffect(() => {
+    setFavorites(isFavorite(car._id));
+  }, [car._id, isFavorite]);
 
   const loadDataProgressively = async () => {
     await new Promise((resolve) => setTimeout(resolve, 800));
@@ -106,44 +107,40 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
     await new Promise((resolve) => setTimeout(resolve, 400));
     setIsLoadingSpecs(false);
 
-    await new Promise((resolve) => setTimeout(resolve, 600));
-    setIsLoadingReviews(false);
+    try {
+      await loadCarReviews(car._id);
+    } catch (error) {
+      console.error("Erro ao carregar reviews:", error);
+    } finally {
+      setIsLoadingReviews(false);
+    }
   };
 
-  useEffect(() => {
-    setFavorites(isFavorite(car.id));
-  }, [car.id, isFavorite]);
-
-  useEffect(() => {
-    addToHistory(car);
-  }, [car.id]);
-
-  useEffect(() => {
-    recordCarView(car.id);
-  }, [car.id]);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await Promise.all([handleRefreshImages(), loadCarReviews(car._id)]);
+    setRefreshing(false);
+  };
 
   const loadUnsplashImages = async () => {
     try {
-      const images = await getCarImages(car.id, car);
+      const images = await getCarImages(car._id, car);
       if (images && images.length > 0) {
-        const imageUrls = images.map((img) => ({
-          uri: img.urls.regular,
-        }));
-        setUnsplashImages(imageUrls);
-        setHasLoadedImages(true);
+        setUnsplashImages(images.map((img) => ({ uri: img.urls.regular })));
       }
     } catch (error) {
-      console.error("Error loading Unsplash images:", error);
+      console.error("Erro ao carregar imagens Unsplash:", error);
+    } finally {
       setHasLoadedImages(true);
     }
   };
 
   const handleRefreshImages = async () => {
     try {
-      await refreshCarImages(car.id, car);
+      await refreshCarImages(car._id, car);
       await loadUnsplashImages();
     } catch (error) {
-      console.error("Error refreshing images:", error);
+      console.error("Erro ao atualizar imagens:", error);
     }
   };
 
@@ -174,19 +171,13 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
     const isAdding = !favorites;
     toggleFavorite(car);
     setFavorites(isAdding);
-    recordFavorite(car.id, isAdding);
-
-    if (isAdding) {
-      HapticFeedback.favorite();
-    } else {
-      HapticFeedback.delete();
-    }
+    recordFavorite(car._id, isAdding);
+    isAdding ? HapticFeedback.favorite() : HapticFeedback.delete();
   };
 
   const handleShare = () => {
     setShareModalVisible(true);
     recordShare();
-
     HapticFeedback.press();
   };
 
@@ -239,10 +230,7 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
 
           <View style={{ flexDirection: "row", gap: 8 }}>
             <TouchableOpacity
-              onPress={() => {
-                HapticFeedback.press();
-                handleShare();
-              }}
+              onPress={handleShare}
               style={{
                 width: 40,
                 height: 40,
@@ -253,7 +241,6 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
             >
               <Ionicons name="share-social" size={22} color="#fff" />
             </TouchableOpacity>
-
             <TouchableOpacity
               onPress={handleToggleFavorite}
               style={{
@@ -335,13 +322,12 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                   </TouchableOpacity>
                 )}
               />
-
               <TouchableOpacity
                 style={{
                   position: "absolute",
                   bottom: 16,
                   right: 16,
-                  backgroundColor: "rgba(0, 0, 0, 0.7)",
+                  backgroundColor: "rgba(0,0,0,0.7)",
                   paddingHorizontal: 16,
                   paddingVertical: 10,
                   borderRadius: 20,
@@ -358,13 +344,12 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                   Ver todas ({unsplashImages.length})
                 </Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={{
                   position: "absolute",
                   top: 16,
                   right: 16,
-                  backgroundColor: "rgba(0, 0, 0, 0.7)",
+                  backgroundColor: "rgba(0,0,0,0.7)",
                   width: 40,
                   height: 40,
                   borderRadius: 20,
@@ -425,18 +410,15 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
             </View>
           )}
         </View>
+
         <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }}
+          style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
         >
           <View style={styles.mainInfo}>
             <Text style={styles.carName}>{car.name}</Text>
             <Text style={styles.carModel}>
-              {car.model} • {car.year}
+              {car.carModel} • {car.year}
             </Text>
-
             <View style={styles.priceContainer}>
               <Text style={styles.priceLabel}>Valor</Text>
               <Text style={styles.price}>
@@ -455,7 +437,6 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
               }}
             >
               <Text style={styles.sectionTitle}>Sobre o veículo</Text>
-
               <TouchableOpacity
                 style={{
                   flexDirection: "row",
@@ -489,7 +470,6 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                 />
               </TouchableOpacity>
             </View>
-
             {isLoadingInfo ? (
               <SkeletonText lines={4} spacing={8} lastLineWidth="85%" />
             ) : (
@@ -517,13 +497,11 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                   <Text style={styles.highlightValue}>{car.maxSpeed} km/h</Text>
                   <Text style={styles.highlightLabel}>Velocidade Máx.</Text>
                 </View>
-
                 <View style={styles.highlightCard}>
                   <Ionicons name="flash-outline" size={28} color="#FF9800" />
                   <Text style={styles.highlightValue}>{car.acceleration}</Text>
                   <Text style={styles.highlightLabel}>0-100 km/h</Text>
                 </View>
-
                 <View style={styles.highlightCard}>
                   <Ionicons
                     name="hardware-chip-outline"
@@ -533,7 +511,6 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                   <Text style={styles.highlightValue}>{car.horsepower} cv</Text>
                   <Text style={styles.highlightLabel}>Potência</Text>
                 </View>
-
                 <View style={styles.highlightCard}>
                   <Ionicons name="scale-outline" size={28} color="#9C27B0" />
                   <Text style={styles.highlightValue}>{car.weight} kg</Text>
@@ -568,7 +545,6 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                   </Text>
                 </TouchableOpacity>
               </View>
-
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
                 {unsplashImages.slice(0, 6).map((image, index) => (
                   <TouchableOpacity
@@ -593,7 +569,7 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                           left: 0,
                           right: 0,
                           bottom: 0,
-                          backgroundColor: "rgba(0, 0, 0, 0.6)",
+                          backgroundColor: "rgba(0,0,0,0.6)",
                           alignItems: "center",
                           justifyContent: "center",
                         }}
@@ -617,15 +593,11 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Especificações Técnicas</Text>
-
             {isLoadingSpecs ? (
               <View style={styles.specsContainer}>
-                <SkeletonListItem />
-                <SkeletonListItem />
-                <SkeletonListItem />
-                <SkeletonListItem />
-                <SkeletonListItem />
-                <SkeletonListItem />
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <SkeletonListItem key={i} />
+                ))}
               </View>
             ) : (
               <View style={styles.specsContainer}>
@@ -638,7 +610,7 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                 <SpecRow
                   icon="car-sport-outline"
                   label="Modelo"
-                  value={car.model}
+                  value={car.carModel}
                 />
                 <SpecRow
                   icon="build-outline"
@@ -710,13 +682,11 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
               <Ionicons name="share-social" size={20} color="#fff" />
               <Text style={styles.actionButtonText}>Compartilhar</Text>
             </TouchableOpacity>
-
             <TouchableOpacity
               style={[styles.actionButton, { flex: 1.5 }]}
               activeOpacity={0.8}
               onPress={() => {
                 HapticFeedback.medium();
-                console.log("Contato WhatsApp");
               }}
             >
               <Ionicons name="logo-whatsapp" size={20} color="#fff" />
@@ -750,6 +720,7 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
           onClose={() => setGalleryVisible(false)}
         />
       )}
+
       <CarDetailsModal
         visible={detailsModalVisible}
         onClose={() => setDetailsModalVisible(false)}

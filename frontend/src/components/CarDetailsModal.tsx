@@ -80,7 +80,7 @@ export default function CarDetailsModal({
   };
 
   const detailedDescription =
-    visible && isContentReady ? getFormattedCarDescription(car.id) : "";
+    visible && isContentReady ? getFormattedCarDescription(car._id) : "";
 
   const styles = createStyles(colors);
 

@@ -31,9 +31,9 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ car }) => {
   const [alertTitle, setAlertTitle] = useState("");
   const [alertMessage, setAlertMessage] = useState("");
 
-  const reviews = getCarReviews(car.id);
-  const averageRating = getCarAverageRating(car.id);
-  const userReview = getUserReview(car.id);
+  const reviews = getCarReviews(car._id);
+  const averageRating = getCarAverageRating(car._id);
+  const userReview = getUserReview(car._id);
 
   const handleAddReview = () => {
     if (!currentUser) {
@@ -47,12 +47,12 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ car }) => {
 
   const handleSubmitReview = async (rating: number, comment: string) => {
     if (userReview) {
-      const result = await updateReview(userReview.id, rating, comment);
+      const result = await updateReview(userReview._id, rating, comment);
       setAlertTitle(result.success ? "Sucesso!" : "Erro");
       setAlertMessage(result.message);
       setAlertVisible(true);
     } else {
-      const result = await addReview(car.id, rating, comment);
+      const result = await addReview(car._id, rating, comment);
       setAlertTitle(result.success ? "Sucesso!" : "Erro");
       setAlertMessage(result.message);
       setAlertVisible(true);

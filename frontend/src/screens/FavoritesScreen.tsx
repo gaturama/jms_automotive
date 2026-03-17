@@ -228,7 +228,7 @@ export default function FavoritesScreen({ navigation }: Props) {
       ) : (
         <FlatList
           data={favorites}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => item._id}
           renderItem={({ item }) => (
             <CarCard car={item} onPress={() => handleCarPress(item)} />
           )}

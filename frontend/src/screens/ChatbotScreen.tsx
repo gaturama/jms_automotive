@@ -11,11 +11,12 @@ import {
   StyleSheet,
   StatusBar,
 } from "react-native";
-import { MOCK_CARS } from "../data/carsData";
 import { Ionicons } from "@expo/vector-icons";
 import { HapticFeedback } from "../utils/Haptics";
 import { useTheme } from "../context/ThemeContext";
+import { Car } from "../navigation/car";
 import { RootStackParamList } from "../navigation/types";
+import { carService } from "../service/car.service";
 import { ChatbotEngine, ChatMessage } from "../utils/ChatbotEngine";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
 
@@ -23,6 +24,7 @@ type Props = NativeStackScreenProps<RootStackParamList, "Chatbot">;
 
 export default function ChatbotScreen({ navigation }: Props) {
   const { colors } = useTheme();
+  const [cars, setCars] = useState<Car[]>([]);
   const [messages, setMessages] = useState<ChatMessage[]>([
     ChatbotEngine.getWelcomeMessage(),
   ]);
@@ -37,7 +39,18 @@ export default function ChatbotScreen({ navigation }: Props) {
       duration: 500,
       useNativeDriver: true,
     }).start();
+
+    loadCars();
   }, []);
+
+  const loadCars = async () => {
+    try {
+      const result = await carService.getCars({ limit: 100 });
+      setCars(result.cars);
+    } catch (error) {
+      console.error("Erro ao carregar carros para o chatbot:", error);
+    }
+  };
 
   const handleSend = async () => {
     if (!inputText.trim()) return;
@@ -61,7 +74,7 @@ export default function ChatbotScreen({ navigation }: Props) {
 
     const botResponse = await ChatbotEngine.processMessage(
       inputText.trim(),
-      MOCK_CARS,
+      cars,
     );
 
     setIsTyping(false);
@@ -240,9 +253,9 @@ export default function ChatbotScreen({ navigation }: Props) {
           contentContainerStyle={styles.messagesList}
           showsVerticalScrollIndicator={false}
           ListFooterComponent={renderTypingIndicator}
-          onContentSizeChange={() => {
-            flatListRef.current?.scrollToEnd({ animated: true });
-          }}
+          onContentSizeChange={() =>
+            flatListRef.current?.scrollToEnd({ animated: true })
+          }
         />
       </Animated.View>
 
@@ -262,7 +275,6 @@ export default function ChatbotScreen({ navigation }: Props) {
             multiline
             maxLength={500}
           />
-
           <TouchableOpacity
             style={[
               styles.sendButton,
@@ -290,10 +302,7 @@ export default function ChatbotScreen({ navigation }: Props) {
 
 const createStyles = (colors: any) =>
   StyleSheet.create({
-    container: {
-      flex: 1,
-      backgroundColor: colors.background,
-    },
+    container: { flex: 1, backgroundColor: colors.background },
     header: {
       flexDirection: "row",
       alignItems: "center",
@@ -322,39 +331,24 @@ const createStyles = (colors: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    headerTitle: {
-      fontSize: 16,
-      fontWeight: "700",
-      color: "#fff",
-    },
-    headerSubtitle: {
-      fontSize: 12,
-      color: "rgba(255, 255, 255, 0.8)",
-    },
+    headerTitle: { fontSize: 16, fontWeight: "700", color: "#fff" },
+    headerSubtitle: { fontSize: 12, color: "rgba(255, 255, 255, 0.8)" },
     clearButton: {
       width: 40,
       height: 40,
       alignItems: "center",
       justifyContent: "center",
     },
-    messagesContainer: {
-      flex: 1,
-    },
-    messagesList: {
-      padding: 16,
-    },
+    messagesContainer: { flex: 1 },
+    messagesList: { padding: 16 },
     messageContainer: {
       flexDirection: "row",
       marginBottom: 16,
       alignItems: "flex-end",
       gap: 8,
     },
-    userMessageContainer: {
-      justifyContent: "flex-end",
-    },
-    botMessageContainer: {
-      justifyContent: "flex-start",
-    },
+    userMessageContainer: { justifyContent: "flex-end" },
+    botMessageContainer: { justifyContent: "flex-start" },
     avatar: {
       width: 32,
       height: 32,
@@ -362,42 +356,19 @@ const createStyles = (colors: any) =>
       alignItems: "center",
       justifyContent: "center",
     },
-    messageBubble: {
-      maxWidth: "70%",
-      padding: 12,
-      borderRadius: 16,
-    },
-    messageText: {
-      fontSize: 14,
-      lineHeight: 20,
-    },
-    suggestionsContainer: {
-      marginTop: 12,
-      gap: 8,
-    },
+    messageBubble: { maxWidth: "70%", padding: 12, borderRadius: 16 },
+    messageText: { fontSize: 14, lineHeight: 20 },
+    suggestionsContainer: { marginTop: 12, gap: 8 },
     suggestionChip: {
       paddingHorizontal: 12,
       paddingVertical: 8,
       borderRadius: 12,
       borderWidth: 1,
     },
-    suggestionText: {
-      fontSize: 13,
-      fontWeight: "600",
-    },
-    typingBubble: {
-      padding: 12,
-      borderRadius: 16,
-    },
-    typingDots: {
-      flexDirection: "row",
-      gap: 6,
-    },
-    dot: {
-      width: 8,
-      height: 8,
-      borderRadius: 4,
-    },
+    suggestionText: { fontSize: 13, fontWeight: "600" },
+    typingBubble: { padding: 12, borderRadius: 16 },
+    typingDots: { flexDirection: "row", gap: 6 },
+    dot: { width: 8, height: 8, borderRadius: 4 },
     inputContainer: {
       flexDirection: "row",
       alignItems: "flex-end",
