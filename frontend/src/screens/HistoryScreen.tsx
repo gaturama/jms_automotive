@@ -16,25 +16,16 @@ import { useViewHistory } from "../context/ViewHistoryContext";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-
-type TabType = "recent" | "mostViewed" | "stats";
+type TabType = "recent" | "stats";
 
 export default function HistoryScreen() {
   const { colors } = useTheme();
   const navigation = useNavigation<NavigationProp>();
-  const {
-    viewHistory,
-    clearHistory,
-    removeFromHistory,
-    getMostViewed,
-    getRecentlyViewed,
-    getCarViewCount,
-  } = useViewHistory();
-
+  const { viewHistory, clearHistory, getRecentlyViewed, getLastViewed } =
+    useViewHistory();
   const [activeTab, setActiveTab] = useState<TabType>("recent");
 
-  const recentlyViewed = getRecentlyViewed(20);
-  const mostViewed = getMostViewed();
+  const recentlyViewed = getRecentlyViewed(50);
 
   const handleClearHistory = () => {
     Alert.alert(
@@ -42,26 +33,7 @@ export default function HistoryScreen() {
       "Tem certeza que deseja apagar todo o histórico de visualizações?",
       [
         { text: "Cancelar", style: "cancel" },
-        {
-          text: "Limpar",
-          style: "destructive",
-          onPress: () => clearHistory(),
-        },
-      ],
-    );
-  };
-
-  const handleRemoveItem = (carId: string, carName: string) => {
-    Alert.alert(
-      "Remover do Histórico",
-      `Deseja remover "${carName}" do histórico?`,
-      [
-        { text: "Cancelar", style: "cancel" },
-        {
-          text: "Remover",
-          style: "destructive",
-          onPress: () => removeFromHistory(carId),
-        },
+        { text: "Limpar", style: "destructive", onPress: () => clearHistory() },
       ],
     );
   };
@@ -105,17 +77,11 @@ export default function HistoryScreen() {
           backgroundColor: colors.inputBackground,
           overflow: "hidden",
           marginRight: 12,
+          alignItems: "center",
+          justifyContent: "center",
         }}
       >
-        <View
-          style={{
-            flex: 1,
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <Ionicons name="car-sport" size={32} color={colors.textTertiary} />
-        </View>
+        <Ionicons name="car-sport" size={32} color={colors.textTertiary} />
       </View>
 
       <View style={{ flex: 1, justifyContent: "space-between" }}>
@@ -130,62 +96,20 @@ export default function HistoryScreen() {
           >
             {item.car.name}
           </Text>
-          <Text
-            style={{
-              fontSize: 13,
-              color: colors.textSecondary,
-            }}
-          >
+          <Text style={{ fontSize: 13, color: colors.textSecondary }}>
             {item.car.brand} • {item.car.year}
           </Text>
         </View>
 
         <View
-          style={{
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginTop: 8,
-          }}
+          style={{ flexDirection: "row", alignItems: "center", marginTop: 8 }}
         >
-          <View style={{ flexDirection: "row", gap: 12 }}>
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-            >
-              <Ionicons
-                name="time-outline"
-                size={14}
-                color={colors.textTertiary}
-              />
-              <Text style={{ fontSize: 12, color: colors.textTertiary }}>
-                {formatRelativeTime(item.viewedAt)}
-              </Text>
-            </View>
-
-            <View
-              style={{ flexDirection: "row", alignItems: "center", gap: 4 }}
-            >
-              <Ionicons
-                name="eye-outline"
-                size={14}
-                color={colors.textTertiary}
-              />
-              <Text style={{ fontSize: 12, color: colors.textTertiary }}>
-                {item.viewCount}x
-              </Text>
-            </View>
-          </View>
-
-          <TouchableOpacity
-            onPress={() => handleRemoveItem(item.car.id, item.car.name)}
-            style={{ padding: 4 }}
+          <Ionicons name="time-outline" size={14} color={colors.textTertiary} />
+          <Text
+            style={{ fontSize: 12, color: colors.textTertiary, marginLeft: 4 }}
           >
-            <Ionicons
-              name="close-circle"
-              size={20}
-              color={colors.textTertiary}
-            />
-          </TouchableOpacity>
+            {formatRelativeTime(item.viewedAt)}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -244,48 +168,50 @@ export default function HistoryScreen() {
   );
 
   const renderStatsTab = () => {
-    const totalViews = viewHistory.reduce(
-      (sum, item) => sum + item.viewCount,
-      0,
-    );
     const uniqueCars = viewHistory.length;
-    const avgViews =
-      uniqueCars > 0 ? (totalViews / uniqueCars).toFixed(1) : "0";
-    const topCar = mostViewed[0];
+    const lastViewed = getLastViewed();
+
+    const brandCount: Record<string, number> = {};
+    viewHistory.forEach((item) => {
+      brandCount[item.car.brand] = (brandCount[item.car.brand] || 0) + 1;
+    });
+    const topBrand = Object.entries(brandCount).sort((a, b) => b[1] - a[1])[0];
 
     return (
       <ScrollView showsVerticalScrollIndicator={false}>
         <View style={{ flexDirection: "row", gap: 12, marginBottom: 24 }}>
-          {renderStatsCard(
-            "eye",
-            "Total de\nVisualizações",
-            totalViews.toString(),
-            "#4CAF50",
-          )}
           {renderStatsCard(
             "car-sport",
             "Carros\nVistos",
             uniqueCars.toString(),
             "#2196F3",
           )}
-        </View>
-
-        <View style={{ flexDirection: "row", gap: 12, marginBottom: 24 }}>
           {renderStatsCard(
-            "analytics",
-            "Média por\nCarro",
-            avgViews,
-            "#FF9800",
-          )}
-          {renderStatsCard(
-            "trophy",
-            "Favorito",
-            topCar ? topCar.viewCount.toString() : "0",
-            "#9C27B0",
+            "layers",
+            "Marcas\nDiferentes",
+            Object.keys(brandCount).length.toString(),
+            "#4CAF50",
           )}
         </View>
 
-        {topCar && (
+        {topBrand && (
+          <View style={{ flexDirection: "row", gap: 12, marginBottom: 24 }}>
+            {renderStatsCard(
+              "trophy",
+              "Marca\nFavorita",
+              topBrand[0],
+              "#FF9800",
+            )}
+            {renderStatsCard(
+              "eye",
+              "Visitas a\nessa Marca",
+              topBrand[1].toString(),
+              "#9C27B0",
+            )}
+          </View>
+        )}
+
+        {lastViewed && (
           <View style={{ marginBottom: 24 }}>
             <Text
               style={{
@@ -295,7 +221,7 @@ export default function HistoryScreen() {
                 marginBottom: 12,
               }}
             >
-              🏆 Carro Mais Visto
+              🕐 Último Visualizado
             </Text>
             <TouchableOpacity
               style={{
@@ -306,20 +232,20 @@ export default function HistoryScreen() {
                 borderColor: colors.accent,
               }}
               onPress={() =>
-                navigation.navigate("CarDetails", { car: topCar.car })
+                navigation.navigate("CarDetails", { car: lastViewed.car })
               }
             >
               <View
                 style={{
                   flexDirection: "row",
                   alignItems: "center",
-                  marginBottom: 12,
+                  marginBottom: 8,
                 }}
               >
                 <Ionicons
-                  name="trophy"
+                  name="time"
                   size={24}
-                  color="#FFD700"
+                  color={colors.accent}
                   style={{ marginRight: 8 }}
                 />
                 <Text
@@ -329,7 +255,7 @@ export default function HistoryScreen() {
                     color: colors.textPrimary,
                   }}
                 >
-                  {topCar.car.name}
+                  {lastViewed.car.name}
                 </Text>
               </View>
               <View
@@ -339,12 +265,79 @@ export default function HistoryScreen() {
                 }}
               >
                 <Text style={{ fontSize: 14, color: colors.textSecondary }}>
-                  {topCar.car.brand} • {topCar.car.year}
+                  {lastViewed.car.brand} • {lastViewed.car.year}
                 </Text>
+                <Text style={{ fontSize: 13, color: colors.textTertiary }}>
+                  {formatRelativeTime(lastViewed.viewedAt)}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {viewHistory.length > 0 && (
+          <View>
+            <Text
+              style={{
+                fontSize: 18,
+                fontWeight: "700",
+                color: colors.textPrimary,
+                marginBottom: 12,
+              }}
+            >
+              📊 Marcas no Histórico
+            </Text>
+            {Object.entries(brandCount)
+              .sort((a, b) => b[1] - a[1])
+              .slice(0, 5)
+              .map(([brand, count], index) => (
                 <View
-                  style={{ flexDirection: "row", alignItems: "center", gap: 6 }}
+                  key={brand}
+                  style={{
+                    flexDirection: "row",
+                    alignItems: "center",
+                    backgroundColor: colors.surface,
+                    borderRadius: 12,
+                    padding: 12,
+                    marginBottom: 8,
+                    borderWidth: 1,
+                    borderColor: colors.glassBorder,
+                  }}
                 >
-                  <Ionicons name="eye" size={16} color={colors.accent} />
+                  <View
+                    style={{
+                      width: 32,
+                      height: 32,
+                      borderRadius: 16,
+                      backgroundColor:
+                        index === 0
+                          ? "#FFD700"
+                          : index === 1
+                            ? "#C0C0C0"
+                            : index === 2
+                              ? "#CD7F32"
+                              : colors.accent,
+                      alignItems: "center",
+                      justifyContent: "center",
+                      marginRight: 12,
+                    }}
+                  >
+                    <Text
+                      style={{ fontSize: 14, fontWeight: "700", color: "#fff" }}
+                    >
+                      {index + 1}
+                    </Text>
+                  </View>
+                  <Text
+                    style={{
+                      flex: 1,
+                      fontSize: 14,
+                      fontWeight: "600",
+                      color: colors.textPrimary,
+                    }}
+                  >
+                    {brand}
+                  </Text>
                   <Text
                     style={{
                       fontSize: 16,
@@ -352,92 +345,12 @@ export default function HistoryScreen() {
                       color: colors.accent,
                     }}
                   >
-                    {topCar.viewCount} visualizações
+                    {count}x
                   </Text>
                 </View>
-              </View>
-            </TouchableOpacity>
+              ))}
           </View>
         )}
-
-        <View>
-          <Text
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              color: colors.textPrimary,
-              marginBottom: 12,
-            }}
-          >
-            📊 Top 5 Mais Vistos
-          </Text>
-          {mostViewed.slice(0, 5).map((item, index) => (
-            <TouchableOpacity
-              key={item.car.id}
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                backgroundColor: colors.surface,
-                borderRadius: 12,
-                padding: 12,
-                marginBottom: 8,
-                borderWidth: 1,
-                borderColor: colors.glassBorder,
-              }}
-              onPress={() =>
-                navigation.navigate("CarDetails", { car: item.car })
-              }
-            >
-              <View
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 16,
-                  backgroundColor:
-                    index === 0
-                      ? "#FFD700"
-                      : index === 1
-                        ? "#C0C0C0"
-                        : index === 2
-                          ? "#CD7F32"
-                          : colors.accent,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  marginRight: 12,
-                }}
-              >
-                <Text
-                  style={{ fontSize: 14, fontWeight: "700", color: "#fff" }}
-                >
-                  {index + 1}
-                </Text>
-              </View>
-              <View style={{ flex: 1 }}>
-                <Text
-                  style={{
-                    fontSize: 14,
-                    fontWeight: "600",
-                    color: colors.textPrimary,
-                  }}
-                >
-                  {item.car.name}
-                </Text>
-                <Text style={{ fontSize: 12, color: colors.textSecondary }}>
-                  {item.car.brand}
-                </Text>
-              </View>
-              <Text
-                style={{
-                  fontSize: 16,
-                  fontWeight: "700",
-                  color: colors.accent,
-                }}
-              >
-                {item.viewCount}x
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
       </ScrollView>
     );
   };
@@ -467,7 +380,6 @@ export default function HistoryScreen() {
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Ionicons name="arrow-back" size={24} color="#fff" />
           </TouchableOpacity>
-
           <Text
             style={{
               fontSize: 20,
@@ -479,7 +391,6 @@ export default function HistoryScreen() {
           >
             Histórico
           </Text>
-
           <TouchableOpacity onPress={handleClearHistory}>
             <Ionicons name="trash-outline" size={22} color="#fff" />
           </TouchableOpacity>
@@ -494,76 +405,30 @@ export default function HistoryScreen() {
           borderBottomColor: colors.glassBorder,
         }}
       >
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            paddingVertical: 14,
-            borderBottomWidth: 2,
-            borderBottomColor:
-              activeTab === "recent" ? colors.accent : "transparent",
-          }}
-          onPress={() => setActiveTab("recent")}
-        >
-          <Text
+        {(["recent", "stats"] as TabType[]).map((tab) => (
+          <TouchableOpacity
+            key={tab}
             style={{
-              textAlign: "center",
-              fontSize: 14,
-              fontWeight: "600",
-              color:
-                activeTab === "recent" ? colors.accent : colors.textSecondary,
+              flex: 1,
+              paddingVertical: 14,
+              borderBottomWidth: 2,
+              borderBottomColor:
+                activeTab === tab ? colors.accent : "transparent",
             }}
+            onPress={() => setActiveTab(tab)}
           >
-            Recentes
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            paddingVertical: 14,
-            borderBottomWidth: 2,
-            borderBottomColor:
-              activeTab === "mostViewed" ? colors.accent : "transparent",
-          }}
-          onPress={() => setActiveTab("mostViewed")}
-        >
-          <Text
-            style={{
-              textAlign: "center",
-              fontSize: 14,
-              fontWeight: "600",
-              color:
-                activeTab === "mostViewed"
-                  ? colors.accent
-                  : colors.textSecondary,
-            }}
-          >
-            Mais Vistos
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={{
-            flex: 1,
-            paddingVertical: 14,
-            borderBottomWidth: 2,
-            borderBottomColor:
-              activeTab === "stats" ? colors.accent : "transparent",
-          }}
-          onPress={() => setActiveTab("stats")}
-        >
-          <Text
-            style={{
-              textAlign: "center",
-              fontSize: 14,
-              fontWeight: "600",
-              color:
-                activeTab === "stats" ? colors.accent : colors.textSecondary,
-            }}
-          >
-            Estatísticas
-          </Text>
-        </TouchableOpacity>
+            <Text
+              style={{
+                textAlign: "center",
+                fontSize: 14,
+                fontWeight: "600",
+                color: activeTab === tab ? colors.accent : colors.textSecondary,
+              }}
+            >
+              {tab === "recent" ? "Recentes" : "Estatísticas"}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
 
       <View style={{ flex: 1, padding: 16 }}>
@@ -601,14 +466,7 @@ export default function HistoryScreen() {
           <FlatList
             data={recentlyViewed}
             renderItem={renderHistoryItem}
-            keyExtractor={(item) => item.car.id}
-            showsVerticalScrollIndicator={false}
-          />
-        ) : activeTab === "mostViewed" ? (
-          <FlatList
-            data={mostViewed}
-            renderItem={renderHistoryItem}
-            keyExtractor={(item) => item.car.id}
+            keyExtractor={(item) => item.car._id}
             showsVerticalScrollIndicator={false}
           />
         ) : (

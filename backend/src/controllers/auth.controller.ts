@@ -20,6 +20,7 @@ export const register = async (req: Request, res: Response) => {
 
     return success(res, { user, accessToken, refreshToken }, 201);
   } catch (err) {
+    console.error('Erro no register:', err);
     return error(res, "Erro ao registrar usuário", 500);
   }
 };

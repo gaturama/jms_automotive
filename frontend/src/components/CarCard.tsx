@@ -22,11 +22,11 @@ export const CarCard: React.FC<CarCardProps> = ({ car, onPress }) => {
 
   useEffect(() => {
     loadThumbnail();
-  }, [car.id]);
+  }, [car._id]);
 
   const loadThumbnail = async () => {
     try {
-      const images = await getCarImages(car.id, car);
+      const images = await getCarImages(car._id, car);
       if (images && images.length > 0) {
         setThumbnailImage(images[0].urls.small);
       }

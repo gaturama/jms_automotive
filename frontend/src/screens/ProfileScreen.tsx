@@ -124,10 +124,18 @@ export default function ProfileScreen({ navigation }: Props) {
       return;
     }
 
+    if (!InputMasks.isValidPhone(phone)) {
+      HapticFeedback.error();
+      setAlertTitle("Telefone Inválido");
+      setAlertMessage("Por favor, insira um telefone válido com DDD.");
+      setAlertVisible(true);
+      return;
+    }
+
     setIsLoading(true);
 
     try {
-      const updateData: any = { name, email, phone };
+      const updateData: any = { name, email, phone: InputMasks.unformatPhone(phone) };
       if (password) updateData.password = password;
 
       const result = await updateUser(updateData);
