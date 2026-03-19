@@ -77,6 +77,7 @@ export const getMe = async (req: Request, res: Response) => {
 };
 
 export const getUsers = async (req: Request, res: Response) => {
+  console.log("🔥 getUsers chamado!");
   try {
     const users = await User.find().select("-password").sort({ createdAt: -1 });
     return success(res, users);

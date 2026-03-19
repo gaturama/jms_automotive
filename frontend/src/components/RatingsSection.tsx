@@ -24,6 +24,7 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ car }) => {
     addReview,
     updateReview,
     deleteReview,
+    loadCarReviews,
   } = useRatings();
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -50,16 +51,17 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ car }) => {
       const result = await updateReview(userReview._id, rating, comment);
       setAlertTitle(result.success ? "Sucesso!" : "Erro");
       setAlertMessage(result.message);
-      setAlertVisible(true);
     } else {
       const result = await addReview(car._id, rating, comment);
       setAlertTitle(result.success ? "Sucesso!" : "Erro");
       setAlertMessage(result.message);
-      setAlertVisible(true);
     }
+    setModalVisible(false);
+    await loadCarReviews(car._id); // recarrega do backend
+    setAlertVisible(true);
   };
 
-  const handleEditReview = () => {
+  const handleEditReview = (review: any) => {
     setModalVisible(true);
   };
 
@@ -114,7 +116,8 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ car }) => {
         <View style={styles(colors).distributionContainer}>
           {[5, 4, 3, 2, 1].map((rating) => {
             const count = distribution[rating as keyof typeof distribution];
-            const percentage = totalReviews > 0 ? (count / totalReviews) * 100 : 0;
+            const percentage =
+              totalReviews > 0 ? (count / totalReviews) * 100 : 0;
 
             return (
               <View key={rating} style={styles(colors).distributionRow}>
@@ -164,114 +167,115 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ car }) => {
   );
 };
 
-const styles = (colors: any) => StyleSheet.create({
-  container: {
-    marginTop: 24,
-  },
+const styles = (colors: any) =>
+  StyleSheet.create({
+    container: {
+      marginTop: 24,
+    },
 
-  header: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    backgroundColor: colors.glassBackground,
-    borderRadius: 20,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-    marginBottom: 16,
-  },
+    header: {
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      backgroundColor: colors.glassBackground,
+      borderRadius: 20,
+      padding: 20,
+      borderWidth: 1,
+      borderColor: colors.glassBorder,
+      marginBottom: 16,
+    },
 
-  averageContainer: {
-    flex: 1,
-    gap: 8,
-  },
+    averageContainer: {
+      flex: 1,
+      gap: 8,
+    },
 
-  averageNumber: {
-    fontSize: 32,
-    fontWeight: "700",
-    color: colors.accent,
-  },
+    averageNumber: {
+      fontSize: 32,
+      fontWeight: "700",
+      color: colors.accent,
+    },
 
-  totalReviews: {
-    fontSize: 13,
-    color: colors.textSecondary,
-    fontWeight: "500",
-  },
+    totalReviews: {
+      fontSize: 13,
+      color: colors.textSecondary,
+      fontWeight: "500",
+    },
 
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: colors.accent,
-    paddingVertical: 12,
-    paddingHorizontal: 20,
-    borderRadius: 12,
-    gap: 6,
-    shadowColor: colors.accent,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 6,
-  },
+    addButton: {
+      flexDirection: "row",
+      alignItems: "center",
+      backgroundColor: colors.accent,
+      paddingVertical: 12,
+      paddingHorizontal: 20,
+      borderRadius: 12,
+      gap: 6,
+      shadowColor: colors.accent,
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
+      shadowRadius: 8,
+      elevation: 6,
+    },
 
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: "700",
-    color: "#fff",
-  },
+    addButtonText: {
+      fontSize: 14,
+      fontWeight: "700",
+      color: "#fff",
+    },
 
-  distributionContainer: {
-    backgroundColor: colors.glassBackground,
-    borderRadius: 16,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: colors.glassBorder,
-    marginBottom: 16,
-    gap: 8,
-  },
+    distributionContainer: {
+      backgroundColor: colors.glassBackground,
+      borderRadius: 16,
+      padding: 16,
+      borderWidth: 1,
+      borderColor: colors.glassBorder,
+      marginBottom: 16,
+      gap: 8,
+    },
 
-  distributionRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 8,
-  },
+    distributionRow: {
+      flexDirection: "row",
+      alignItems: "center",
+      gap: 8,
+    },
 
-  distributionLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: colors.textPrimary,
-    width: 12,
-  },
+    distributionLabel: {
+      fontSize: 13,
+      fontWeight: "600",
+      color: colors.textPrimary,
+      width: 12,
+    },
 
-  distributionBarContainer: {
-    flex: 1,
-    height: 8,
-    backgroundColor: colors.inputBackground,
-    borderRadius: 4,
-    overflow: "hidden",
-  },
+    distributionBarContainer: {
+      flex: 1,
+      height: 8,
+      backgroundColor: colors.inputBackground,
+      borderRadius: 4,
+      overflow: "hidden",
+    },
 
-  distributionBar: {
-    height: "100%",
-    backgroundColor: colors.accent,
-    borderRadius: 4,
-  },
+    distributionBar: {
+      height: "100%",
+      backgroundColor: colors.accent,
+      borderRadius: 4,
+    },
 
-  distributionCount: {
-    fontSize: 12,
-    fontWeight: "600",
-    color: colors.textSecondary,
-    width: 24,
-    textAlign: "right",
-  },
+    distributionCount: {
+      fontSize: 12,
+      fontWeight: "600",
+      color: colors.textSecondary,
+      width: 24,
+      textAlign: "right",
+    },
 
-  reviewsContainer: {
-    marginTop: 8,
-  },
+    reviewsContainer: {
+      marginTop: 8,
+    },
 
-  reviewsTitle: {
-    fontSize: 18,
-    fontWeight: "700",
-    color: colors.textPrimary,
-    marginBottom: 16,
-  },
-});
+    reviewsTitle: {
+      fontSize: 18,
+      fontWeight: "700",
+      color: colors.textPrimary,
+      marginBottom: 16,
+    },
+  });

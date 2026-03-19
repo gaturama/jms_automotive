@@ -65,17 +65,16 @@ export const ReviewsList: React.FC<ReviewsListProps> = ({
           <View style={styles(colors).userInfo}>
             <View style={styles(colors).avatar}>
               {item.user.avatar ? (
-                // eslint-disable-next-line @typescript-eslint/no-require-imports
                 <Ionicons name="person" size={20} color="#fff" />
               ) : (
                 <Text style={styles(colors).avatarText}>
-                  {item.user.name.charAt(0).toUpperCase()}
+                  {item.user?.name?.charAt(0)?.toUpperCase() || "?"}
                 </Text>
               )}
             </View>
             <View style={styles(colors).userDetails}>
               <Text style={styles(colors).userName}>
-                {item.user.name}
+                {item.user?.name || "Usuário"}
                 {isUserReview && (
                   <Text style={styles(colors).youBadge}> (Você)</Text>
                 )}

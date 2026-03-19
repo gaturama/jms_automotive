@@ -15,7 +15,6 @@ import { BlurView } from "expo-blur";
 import { useTheme } from "../context/ThemeContext";
 import { Car } from "../navigation/car";
 import { HapticFeedback } from "../utils/Haptics";
-import { getFormattedCarDescription } from "../data/carDetailsDescriptions";
 
 interface CarDetailsModalProps {
   visible: boolean;
@@ -79,8 +78,7 @@ export default function CarDetailsModal({
     onClose();
   };
 
-  const detailedDescription =
-    visible && isContentReady ? getFormattedCarDescription(car._id) : "";
+  const detailedDescription = visible && isContentReady ? car.description : "";
 
   const styles = createStyles(colors);
 
