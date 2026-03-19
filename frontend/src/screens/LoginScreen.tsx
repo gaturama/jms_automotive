@@ -11,6 +11,7 @@ import {
   Easing,
   Alert,
 } from "react-native";
+import { getToken } from "../utils/Token";
 import { Ionicons } from "@expo/vector-icons";
 import { useAuth } from "../context/AuthContext";
 import { HapticFeedback } from "../utils/Haptics";
@@ -231,25 +232,30 @@ export default function LoginScreen({ navigation }: Props) {
       setIsLoading(true);
 
       const result = await BiometricAuthService.authenticate(
-        `Fazer login como ${userEmail}`,
+        `Entrar como ${userEmail}`,
       );
 
       if (result.success) {
         HapticFeedback.success();
-        const savedPassword = await getSavedPassword(userEmail);
 
-        if (savedPassword) {
-          const loginResult = await login(userEmail, savedPassword);
-          if (loginResult.success) {
+        const token = await getToken();
+
+        if (token) {
+          Animated.parallel([
+            Animated.timing(fadeAnim, {
+              toValue: 0,
+              duration: 300,
+              useNativeDriver: true,
+            }),
+            Animated.spring(cardScale, { toValue: 0.8, useNativeDriver: true }),
+          ]).start(() => {
             navigation.reset({ index: 0, routes: [{ name: "Home" }] });
-          } else {
-            HapticFeedback.error();
-            Alert.alert("Erro", loginResult.message);
-          }
+          });
         } else {
           Alert.alert(
-            "Atenção",
-            "Por favor, faça login com email e senha uma vez.",
+            "Sessão Expirada",
+            "Sua sessão expirou. Por favor, faça login com email e senha uma vez.",
+            [{ text: "OK", onPress: () => setEmail(userEmail) }],
           );
         }
       } else {
@@ -308,7 +314,6 @@ export default function LoginScreen({ navigation }: Props) {
       setAlertTitle("Campos Incompletos");
       setAlertMessage("Por favor, preencha email e senha.");
       setAlertVisible(true);
-      shakeCard();
       return;
     }
 
@@ -546,7 +551,7 @@ export default function LoginScreen({ navigation }: Props) {
             </TouchableOpacity>
           </Animated.View>
 
-          {biometricAvailable && biometricEnabled && (
+          {/* {biometricAvailable && biometricEnabled && (
             <Animated.View
               style={{ transform: [{ scale: biometricScale }], marginTop: 12 }}
             >
@@ -573,7 +578,7 @@ export default function LoginScreen({ navigation }: Props) {
                 </Text>
               </TouchableOpacity>
             </Animated.View>
-          )}
+          )} */}
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />

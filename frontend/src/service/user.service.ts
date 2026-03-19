@@ -10,6 +10,10 @@ export const userService = {
     name?: string;
     bio?: string;
     avatar?: string;
+    location?: string;
+    favoritesBrand?: string;
+    showFavorites?: boolean;
+    showStats: boolean;
   }) => {
     const { data } = await api.put("/users/profile", payload);
     return data.data;
@@ -29,6 +33,11 @@ export const userService = {
 
   getMe: async () => {
     const { data } = await api.get("/users/me");
+    return data.data;
+  },
+
+  getUsers: async () => {
+    const { data } = await api.get("/users/list");
     return data.data;
   },
 };

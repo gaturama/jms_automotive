@@ -102,18 +102,12 @@ export class BiometricAuthService {
       const result = await LocalAuthentication.authenticateAsync({
         promptMessage: reason || defaultReason,
         cancelLabel: "Cancelar",
-        fallbackLabel: "Usar senha",
-        disableDeviceFallback: false,
+        disableDeviceFallback: true,
       });
 
       if (result.success) {
-        console.log("Autenticação biométrica bem-sucedida");
-        return {
-          success: true,
-          biometricType,
-        };
+        return { success: true, biometricType };
       } else {
-        console.log("Autenticação biométrica falhou:", result.error);
         return {
           success: false,
           error: result.error || "Autenticação falhou",
@@ -121,10 +115,7 @@ export class BiometricAuthService {
       }
     } catch (error) {
       console.error("Erro na autenticação biométrica:", error);
-      return {
-        success: false,
-        error: "Erro ao autenticar",
-      };
+      return { success: false, error: "Erro ao autenticar" };
     }
   }
 

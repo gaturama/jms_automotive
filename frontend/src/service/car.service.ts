@@ -17,4 +17,18 @@ export const carService = {
     });
     return data.data;
   },
+
+  createCar: async (payload: Record<string, unknown>) => {
+    const { data } = await api.post("/cars", payload);
+    return data.data;
+  },
+
+  updateCar: async (id: string, payload: Record<string, unknown>) => {
+    const { data } = await api.put(`/cars/${id}`, payload);
+    return data.data;
+  },
+
+  deleteCar: async (id: string) => {
+    await api.delete(`/cars/${id}`);
+  },
 };

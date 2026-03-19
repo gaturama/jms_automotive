@@ -1,7 +1,7 @@
 import axios from "axios";
 import { getToken, removeToken } from "../utils/Token";
 
-const BASE_URL = "http://192.168.3.208:3000/api";
+const BASE_URL = "https://jms-showroom-api.onrender.com/api";
 
 const api = axios.create({
   baseURL: BASE_URL,

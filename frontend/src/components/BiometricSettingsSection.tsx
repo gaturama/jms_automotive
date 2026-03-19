@@ -10,6 +10,7 @@ import { Ionicons } from "@expo/vector-icons";
 import { BiometricAuthService } from "../service/BiometricAuthService";
 import { HapticFeedback } from "../utils/Haptics";
 import { useAuth } from "../context/AuthContext";
+import { getToken } from "../utils/Token";
 
 interface BiometricSettingsSectionProps {
   colors: any;
@@ -44,7 +45,6 @@ export const BiometricSettingsSection: React.FC<
         setBiometricEnabled(enabled);
 
         const settings = await BiometricAuthService.getSettings();
-
         setRequireForSensitiveActions(settings.requireForSensitiveActions);
       }
     } catch (error) {
@@ -55,12 +55,12 @@ export const BiometricSettingsSection: React.FC<
   };
 
   const handleToggleBiometricLogin = async () => {
-    HapticFeedback.toggle();
+    HapticFeedback.selection();
 
     if (biometricEnabled) {
       Alert.alert(
         `Desabilitar ${biometricType}?`,
-        "Você precisará digitar email e senah para fazer login.",
+        "Você precisará digitar email e senha para fazer login.",
         [
           { text: "Cancelar", style: "cancel" },
           {
@@ -84,6 +84,15 @@ export const BiometricSettingsSection: React.FC<
         return;
       }
 
+      const token = await getToken();
+      if (!token) {
+        Alert.alert(
+          "Sessão Expirada",
+          "Faça login com email e senha novamente para habilitar a biometria.",
+        );
+        return;
+      }
+
       Alert.alert(
         `Habilitar ${biometricType}?`,
         `Use ${biometricType} para fazer login mais rápido.`,
@@ -98,13 +107,22 @@ export const BiometricSettingsSection: React.FC<
 
               if (result.success) {
                 const success = await BiometricAuthService.enableBiometricLogin(
-                  currentUser.email,
+                  currentUser.email!,
                 );
                 if (success) {
                   setBiometricEnabled(true);
                   HapticFeedback.success();
-                  Alert.alert(`${biometricType} habilitado!`);
+                  Alert.alert(
+                    `${biometricType} habilitado!`,
+                    "Na próxima vez que abrir o app, use a biometria para entrar.",
+                  );
                 }
+              } else {
+                HapticFeedback.error();
+                Alert.alert(
+                  "Falhou",
+                  "Não foi possível verificar sua identidade.",
+                );
               }
             },
           },
@@ -114,13 +132,11 @@ export const BiometricSettingsSection: React.FC<
   };
 
   const handleToggleSensitiveActions = async () => {
-    HapticFeedback.toggle();
-
+    HapticFeedback.selection();
     const newValue = !requireForSensitiveActions;
     const success = await BiometricAuthService.updateSettings({
       requireForSensitiveActions: newValue,
     });
-
     if (success) {
       setRequireForSensitiveActions(newValue);
       HapticFeedback.success();
@@ -129,11 +145,9 @@ export const BiometricSettingsSection: React.FC<
 
   const handleTestBiometric = async () => {
     HapticFeedback.medium();
-
     const result = await BiometricAuthService.authenticate(
       `Teste de ${biometricType}`,
     );
-
     if (result.success) {
       HapticFeedback.success();
       Alert.alert("Sucesso!", `${biometricType} funcionando corretamente.`);
@@ -169,15 +183,23 @@ export const BiometricSettingsSection: React.FC<
       </View>
     );
   }
+
   return (
     <View style={styles.biometricSection}>
       <View style={styles.biometricHeader}>
         <Ionicons name="finger-print" size={24} color={colors.accent} />
-        <Text style={styles.biometricHeaderText}>Segurança Biométrica</Text>
+        <Text
+          style={[styles.biometricHeaderText, { color: colors.textPrimary }]}
+        >
+          Segurança Biométrica
+        </Text>
       </View>
 
       <TouchableOpacity
-        style={styles.biometricOption}
+        style={[
+          styles.biometricOption,
+          { borderBottomColor: colors.glassBorder },
+        ]}
         onPress={handleToggleBiometricLogin}
         activeOpacity={0.8}
       >
@@ -188,11 +210,25 @@ export const BiometricSettingsSection: React.FC<
             color={colors.textSecondary}
           />
           <View style={{ marginLeft: 12, flex: 1 }}>
-            <Text style={styles.biometricOptionTitle}>
+            <Text
+              style={[
+                styles.biometricOptionTitle,
+                { color: colors.textPrimary },
+              ]}
+            >
               Login com {biometricType}
             </Text>
-            <Text style={styles.biometricOptionSubtitle}>
-              {biometricEnabled ? "Habilitado" : "Desabilitado"}
+            <Text
+              style={[
+                styles.biometricOptionSubtitle,
+                {
+                  color: biometricEnabled
+                    ? colors.accent
+                    : colors.textSecondary,
+                },
+              ]}
+            >
+              {biometricEnabled ? "✓ Habilitado" : "Desabilitado"}
             </Text>
           </View>
         </View>
@@ -222,7 +258,10 @@ export const BiometricSettingsSection: React.FC<
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.biometricOption}
+        style={[
+          styles.biometricOption,
+          { borderBottomColor: colors.glassBorder },
+        ]}
         onPress={handleToggleSensitiveActions}
         activeOpacity={0.8}
       >
@@ -233,10 +272,20 @@ export const BiometricSettingsSection: React.FC<
             color={colors.textSecondary}
           />
           <View style={{ marginLeft: 12, flex: 1 }}>
-            <Text style={styles.biometricOptionTitle}>
+            <Text
+              style={[
+                styles.biometricOptionTitle,
+                { color: colors.textPrimary },
+              ]}
+            >
               Confirmar Ações Sensíveis
             </Text>
-            <Text style={styles.biometricOptionSubtitle}>
+            <Text
+              style={[
+                styles.biometricOptionSubtitle,
+                { color: colors.textSecondary },
+              ]}
+            >
               Exigir biometria para logout, exclusão, etc.
             </Text>
           </View>
@@ -267,25 +316,41 @@ export const BiometricSettingsSection: React.FC<
       </TouchableOpacity>
 
       <TouchableOpacity
-        style={styles.biometricTestButton}
+        style={[
+          styles.biometricTestButton,
+          {
+            backgroundColor: `${colors.accent}15`,
+            borderWidth: 1,
+            borderColor: colors.accent,
+          },
+        ]}
         onPress={handleTestBiometric}
         activeOpacity={0.8}
       >
         <Ionicons name="play-circle" size={20} color={colors.accent} />
-        <Text style={styles.biometricTestButtonText}>
+        <Text
+          style={[styles.biometricTestButtonText, { color: colors.accent }]}
+        >
           Testar {biometricType}
         </Text>
       </TouchableOpacity>
 
-      <View style={styles.biometricInfo}>
+      <View
+        style={[
+          styles.biometricInfo,
+          { backgroundColor: `${colors.accent}10` },
+        ]}
+      >
         <Ionicons
           name="information-circle"
           size={16}
           color={colors.textTertiary}
         />
-        <Text style={styles.biometricInfoText}>
-          {biometricType} usa a autenticação nativa do seu dispositivo para
-          maior segurança.
+        <Text
+          style={[styles.biometricInfoText, { color: colors.textTertiary }]}
+        >
+          {biometricType} usa a autenticação nativa do seu dispositivo. O login
+          biométrico só funciona enquanto sua sessão estiver ativa.
         </Text>
       </View>
     </View>
@@ -293,10 +358,7 @@ export const BiometricSettingsSection: React.FC<
 };
 
 export const biometricStyles = {
-  biometricSection: {
-    marginTop: 20,
-    marginBottom: 20,
-  },
+  biometricSection: { marginTop: 20, marginBottom: 20 },
   biometricHeader: {
     flexDirection: "row" as "row",
     alignItems: "center" as "center",
@@ -314,14 +376,8 @@ export const biometricStyles = {
     paddingVertical: 16,
     borderBottomWidth: 1,
   },
-  biometricOptionTitle: {
-    fontSize: 15,
-    fontWeight: "600" as "600",
-  },
-  biometricOptionSubtitle: {
-    fontSize: 12,
-    marginTop: 2,
-  },
+  biometricOptionTitle: { fontSize: 15, fontWeight: "600" as "600" },
+  biometricOptionSubtitle: { fontSize: 12, marginTop: 2 },
   biometricTestButton: {
     flexDirection: "row" as "row",
     alignItems: "center" as "center",
@@ -342,16 +398,8 @@ export const biometricStyles = {
     padding: 12,
     borderRadius: 8,
   },
-  biometricInfoText: {
-    fontSize: 12,
-    marginLeft: 8,
-    flex: 1,
-    lineHeight: 18,
-  },
-  biometricUnavailable: {
-    padding: 30,
-    alignItems: "center" as "center",
-  },
+  biometricInfoText: { fontSize: 12, marginLeft: 8, flex: 1, lineHeight: 18 },
+  biometricUnavailable: { padding: 30, alignItems: "center" as "center" },
   biometricUnavailableText: {
     fontSize: 16,
     fontWeight: "600" as "600",
