@@ -20,7 +20,7 @@ export const register = async (req: Request, res: Response) => {
 
     return success(res, { user, accessToken, refreshToken }, 201);
   } catch (err) {
-    console.error('Erro no register:', err);
+    console.error("Erro no register:", err);
     return error(res, "Erro ao registrar usuário", 500);
   }
 };
@@ -29,17 +29,30 @@ export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
 
+    console.log("📧 Email recebido:", email);
+    console.log("🔑 Senha recebida:", password);
+
     const user = await User.findOne({ email }).select("+password");
+    console.log("👤 Usuário encontrado:", user ? "SIM" : "NÃO");
+
+    const allUsers = await User.find().select("email role");
+    console.log("📋 Todos os usuários:", allUsers);
+
     if (!user) return error(res, "Credenciais inválidas", 401);
 
+    console.log("🔐 Hash no banco:", user.password);
+
     const valid = await user.comparePassword(password);
+    console.log("✅ Senha válida:", valid);
+
     if (!valid) return error(res, "Credenciais inválidas", 401);
 
     const accessToken = generateAccessToken(String(user._id), user.role);
     const refreshToken = generateRefreshToken(String(user._id));
-
+    
     return success(res, { user, accessToken, refreshToken });
   } catch (err) {
+    console.error("Erro no login:", err);
     return error(res, "Erro ao realizar login", 500);
   }
 };

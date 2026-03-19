@@ -2,7 +2,8 @@ import mongoose from "mongoose";
 import dotenv from "dotenv";
 import Car from "../models/Car.model";
 
-dotenv.config();
+import path from "path";
+dotenv.config({ path: path.resolve(__dirname, "../../.env") });
 
 const cars = [
   {
@@ -369,7 +370,11 @@ const cars = [
 
 const seed = async () => {
   try {
-    await mongoose.connect(process.env.MONGODB_URI as string);
+    const uri = process.env.MONGODB_URI as string;
+    const uriWithDb = uri.includes("/showroom")
+      ? uri
+      : uri.replace("/?", "/showroom?");
+    await mongoose.connect(uriWithDb);
     console.log("✅ MongoDB conectado");
 
     await Car.collection.drop().catch(() => null);

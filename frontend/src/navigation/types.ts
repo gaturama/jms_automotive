@@ -17,4 +17,6 @@ export type RootStackParamList = {
     EditProfile: undefined;
     Chatbot: undefined;
     DeveloperSettings: undefined;
+    AdminPanel: undefined;
+    AdminCarForm: { car?: Car };
 };

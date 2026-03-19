@@ -19,7 +19,15 @@ export const getPublicProfile = async (req: Request, res: Response) => {
 
 export const updateProfile = async (req: Request, res: Response) => {
   try {
-    const { name, bio, avatar, location, favoritesBrand, showFavorites, showStats } = req.body;
+    const {
+      name,
+      bio,
+      avatar,
+      location,
+      favoritesBrand,
+      showFavorites,
+      showStats,
+    } = req.body;
     const user = await User.findByIdAndUpdate(
       req.user!._id,
       { name, bio, avatar, location, favoritesBrand, showFavorites, showStats },
@@ -66,4 +74,13 @@ export const getStats = async (req: Request, res: Response) => {
 
 export const getMe = async (req: Request, res: Response) => {
   return success(res, req.user);
+};
+
+export const getUsers = async (req: Request, res: Response) => {
+  try {
+    const users = await User.find().select("-password").sort({ createdAt: -1 });
+    return success(res, users);
+  } catch {
+    return error(res, "Erro ao buscar usuários", 500);
+  }
 };

@@ -29,10 +29,12 @@ import {
 import { Car } from "../navigation/car";
 import { Ionicons } from "@expo/vector-icons";
 import { CarCard } from "../components/CarCard";
+import { useAuth } from "../context/AuthContext";
 import { HapticFeedback } from "../utils/Haptics";
 import { useTheme } from "../context/ThemeContext";
 import { SearchBar } from "../components/SearchBar";
 import { createStyles } from "../styles/stylesHome";
+import { carService } from "../service/car.service";
 import { RootStackParamList } from "../navigation/types";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { AdvancedFilterHelper } from "../utils/AdvancedFilterHelper";
@@ -41,7 +43,6 @@ import {
   AdvancedSearchModal,
   AdvancedFilters,
 } from "../components/AdvancedSearchModal";
-import { carService } from "../service/car.service";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -53,6 +54,7 @@ export default function HomeScreen({ navigation }: Props) {
   const [brandFilter, setBrandFilter] = useState<BrandFilter>("all");
   const [isLoading, setIsLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const { currentUser } = useAuth();
 
   const [advancedFiltersVisible, setAdvancedFiltersVisible] = useState(false);
   const [advancedFilters, setAdvancedFilters] = useState<AdvancedFilters>(
@@ -492,16 +494,31 @@ export default function HomeScreen({ navigation }: Props) {
       />
 
       {!isLoading && (
-        <TouchableOpacity
-          style={styles.fab}
-          onPress={() => {
-            HapticFeedback.medium();
-            navigation.navigate("Chatbot");
-          }}
-          activeOpacity={0.8}
-        >
-          <Ionicons name="rocket" size={28} color="#fff" />
-        </TouchableOpacity>
+        <>
+          <TouchableOpacity
+            style={styles.fab}
+            onPress={() => {
+              HapticFeedback.medium();
+              navigation.navigate("Chatbot");
+            }}
+            activeOpacity={0.8}
+          >
+            <Ionicons name="rocket" size={28} color="#fff" />
+          </TouchableOpacity>
+
+          {currentUser?.role === "admin" && (
+            <TouchableOpacity
+              style={[styles.fab, { bottom: 90, backgroundColor: "#FF6B6B" }]}
+              onPress={() => {
+                HapticFeedback.medium();
+                navigation.navigate("AdminPanel");
+              }}
+              activeOpacity={0.8}
+            >
+              <Ionicons name="shield-checkmark" size={28} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </>
       )}
     </View>
   );

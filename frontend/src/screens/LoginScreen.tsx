@@ -551,7 +551,7 @@ export default function LoginScreen({ navigation }: Props) {
             </TouchableOpacity>
           </Animated.View>
 
-          {biometricAvailable && biometricEnabled && (
+          {/* {biometricAvailable && biometricEnabled && (
             <Animated.View
               style={{ transform: [{ scale: biometricScale }], marginTop: 12 }}
             >
@@ -578,7 +578,7 @@ export default function LoginScreen({ navigation }: Props) {
                 </Text>
               </TouchableOpacity>
             </Animated.View>
-          )}
+          )} */}
 
           <View style={styles.divider}>
             <View style={styles.dividerLine} />

@@ -35,4 +35,9 @@ export const userService = {
     const { data } = await api.get("/users/me");
     return data.data;
   },
+
+  getUsers: async () => {
+    const { data } = await api.get("/users/list");
+    return data.data;
+  },
 };

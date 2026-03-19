@@ -22,8 +22,10 @@ import HistoryScreen from "./src/screens/HistoryScreen";
 import ChatbotScreen from "./src/screens/ChatbotScreen";
 import RegisterScreen from "./src/screens/RegisterScreen";
 import FavoritesScreen from "./src/screens/FavoritesScreen";
+import AdminPanelScreen from "./src/screens/AdminPanelScreen";
 import CarDetailsScreen from "./src/screens/CarDetailsScreen";
 import EditProfileScreen from "./src/screens/EditProfileScreen";
+import AdminCarFormScreen from "./src/screens/AdminCarFormScree";
 import PublicProfileScreen from "./src/screens/PublicProfileScreen";
 import DeveloperSettingsScreen from "./src/screens/DeveloperSettingsScreen";
 import NotificationSettingsScreen from "./src/screens/NotificationSettingsScreen";
@@ -118,18 +120,28 @@ export default function App() {
                             component={EditProfileScreen}
                             options={{ headerShown: false }}
                           />
-                          <Stack.Screen 
+                          <Stack.Screen
                             name="Chatbot"
                             component={ChatbotScreen}
                             options={{ headerShown: false }}
                           />
                           {__DEV__ && (
-                          <Stack.Screen 
-                            name="DeveloperSettings"
-                            component={DeveloperSettingsScreen}
+                            <Stack.Screen
+                              name="DeveloperSettings"
+                              component={DeveloperSettingsScreen}
+                              options={{ headerShown: false }}
+                            />
+                          )}
+                          <Stack.Screen
+                            name="AdminPanel"
+                            component={AdminPanelScreen}
                             options={{ headerShown: false }}
                           />
-                          )}
+                          <Stack.Screen
+                            name="AdminCarForm"
+                            component={AdminCarFormScreen}
+                            options={{ headerShown: false }}
+                          />
                         </Stack.Navigator>
                       </NavigationContainer>
                     </UserProfileProvider>
