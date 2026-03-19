@@ -19,10 +19,10 @@ export const getPublicProfile = async (req: Request, res: Response) => {
 
 export const updateProfile = async (req: Request, res: Response) => {
   try {
-    const { name, bio, avatar } = req.body;
+    const { name, bio, avatar, location, favoritesBrand, showFavorites, showStats } = req.body;
     const user = await User.findByIdAndUpdate(
       req.user!._id,
-      { name, bio, avatar },
+      { name, bio, avatar, location, favoritesBrand, showFavorites, showStats },
       { new: true, runValidators: true },
     );
     return success(res, user);

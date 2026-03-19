@@ -1,4 +1,10 @@
-import React, { useEffect, useMemo, useRef, useState, useCallback } from "react";
+import React, {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useCallback,
+} from "react";
 import {
   View,
   FlatList,
@@ -330,7 +336,11 @@ export default function HomeScreen({ navigation }: Props) {
                 navigation.navigate("Compare");
               }}
             >
-              <Ionicons name="git-compare" size={18} color={colors.textPrimary} />
+              <Ionicons
+                name="git-compare"
+                size={18}
+                color={colors.textPrimary}
+              />
               <Text style={styles.filterButtonText}>Comparar Carros</Text>
             </TouchableOpacity>
           </ScrollView>

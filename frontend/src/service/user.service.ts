@@ -10,6 +10,10 @@ export const userService = {
     name?: string;
     bio?: string;
     avatar?: string;
+    location?: string;
+    favoritesBrand?: string;
+    showFavorites?: boolean;
+    showStats: boolean;
   }) => {
     const { data } = await api.put("/users/profile", payload);
     return data.data;
