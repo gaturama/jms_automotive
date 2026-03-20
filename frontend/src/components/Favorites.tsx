@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 interface FavoritesData {
   favorites: Car[];
   loading: boolean;
+  loadFavorites: () => Promise<void>;
   addFavorite: (car: Car) => Promise<void>;
   removeFavorite: (carId: string) => Promise<void>;
   isFavorite: (carId: string) => boolean;
@@ -82,6 +83,7 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
       value={{
         favorites,
         loading,
+        loadFavorites,
         addFavorite,
         removeFavorite,
         isFavorite,

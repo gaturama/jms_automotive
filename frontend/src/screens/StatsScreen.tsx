@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   View,
   Text,
@@ -17,10 +17,13 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useTheme } from "../context/ThemeContext";
 import { useStats } from "../context/StatsContext";
+import { carService } from "../service/car.service";
+import { Car } from "../navigation/car";
 
 export default function StatsScreen({ navigation }: any) {
   const { colors } = useTheme();
   const { stats, getStatsReport, resetStats } = useStats();
+  const [mostViewedCar, setMostViewedCar] = useState<Car | null>(null);
 
   const report = getStatsReport();
 
@@ -34,6 +37,20 @@ export default function StatsScreen({ navigation }: any) {
       useNativeDriver: false,
     }).start();
   }, [report.nextLevelProgress]);
+
+  useEffect(() => {
+    const fetchMostViewedCar = async () => {
+      if (report.mostViewedCar?.id) {
+        try {
+          const car = await carService.getCarById(report.mostViewedCar.id);
+          setMostViewedCar(car);
+        } catch {
+          console.error("Erro ao buscar carro mais visto");
+        }
+      }
+    };
+    fetchMostViewedCar();
+  }, [report.mostViewedCar?.id]);
 
   const handleResetStats = () => {
     Alert.alert(
@@ -527,16 +544,28 @@ export default function StatsScreen({ navigation }: any) {
                 </View>
                 <Text
                   style={{
-                    fontSize: 14,
-                    color: colors.textSecondary,
+                    fontSize: 18,
+                    fontWeight: "700",
+                    color: colors.textPrimary,
                     marginBottom: 4,
                   }}
                 >
-                  ID: {report.mostViewedCar.id}
+                  {mostViewedCar?.name || "Carregando..."}
                 </Text>
+                {mostViewedCar && (
+                  <Text
+                    style={{
+                      fontSize: 13,
+                      color: colors.textSecondary,
+                      marginBottom: 8,
+                    }}
+                  >
+                    {mostViewedCar.brand} • {mostViewedCar.year}
+                  </Text>
+                )}
                 <Text
                   style={{
-                    fontSize: 18,
+                    fontSize: 16,
                     fontWeight: "700",
                     color: colors.accent,
                   }}

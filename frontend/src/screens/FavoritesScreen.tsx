@@ -26,7 +26,7 @@ import { NativeStackScreenProps } from "@react-navigation/native-stack";
 type Props = NativeStackScreenProps<RootStackParamList, "Favorites">;
 
 export default function FavoritesScreen({ navigation }: Props) {
-  const { favorites } = useFavorites();
+  const { favorites, loadFavorites: reloadFavorites } = useFavorites();
   const fadeAnim = useRef(new Animated.Value(0)).current;
   const slideAnim = useRef(new Animated.Value(-20)).current;
 
@@ -54,16 +54,20 @@ export default function FavoritesScreen({ navigation }: Props) {
     loadFavorites();
   }, []);
 
-  const onRefresh = async () => {
-    setRefreshing(true);
-    await loadFavorites();
-
-    setRefreshing(false);
+  const loadFavorites = async () => {
+    try {
+      await reloadFavorites();
+    } catch (error) {
+      console.error("Erro ao carregar favoritos:", error);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
-  const loadFavorites = async () => {
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    setIsLoading(false);
+  const onRefresh = async () => {
+    setRefreshing(true);
+    await reloadFavorites();
+    setRefreshing(false);
   };
 
   const handleCarPress = (car: any) => {
@@ -190,7 +194,11 @@ export default function FavoritesScreen({ navigation }: Props) {
             </View>
             <View style={styles.statDivider} />
             <View style={styles.statItem}>
-              <Ionicons name="speedometer" size={20} color={colors.accentLight} />
+              <Ionicons
+                name="speedometer"
+                size={20}
+                color={colors.accentLight}
+              />
               <Text style={styles.statNumber}>
                 {favorites.reduce((acc, car) => acc + car.horsepower, 0)}
               </Text>
