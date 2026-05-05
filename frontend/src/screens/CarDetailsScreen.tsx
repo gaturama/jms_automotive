@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   Animated,
   StatusBar,
-  ActivityIndicator,
   Image,
   FlatList,
   RefreshControl,
@@ -23,7 +22,6 @@ import { useStats } from "../context/StatsContext";
 import { useTheme } from "../context/ThemeContext";
 import { ShareModal } from "../components/ShareModal";
 import { useFavorites } from "../components/Favorites";
-import { useUnsplash } from "../context/UnsplashContext";
 import { RootStackParamList } from "../navigation/types";
 import { createStyles } from "../styles/stylesCarDetails";
 import { useThemedStyles } from "../hooks/useThemedStyles";
@@ -33,6 +31,7 @@ import { useViewHistory } from "../context/ViewHistoryContext";
 import { useRatings } from "../context/RatingsContext";
 import { ImageGalleryModal } from "../components/ImageGalleryModal";
 import { NativeStackScreenProps } from "@react-navigation/native-stack";
+import { getCarImages } from "../data/carImages";
 
 interface SpecRowProps {
   icon: keyof typeof Ionicons.glyphMap;
@@ -56,16 +55,11 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
   const { loadCarReviews } = useRatings();
   const { recordCarView, recordFavorite, recordShare } = useStats();
 
-  const {
-    getCarImages,
-    isLoading: loadingImages,
-    refreshCarImages,
-  } = useUnsplash();
-  const [unsplashImages, setUnsplashImages] = useState<any[]>([]);
-  const [hasLoadedImages, setHasLoadedImages] = useState(false);
   const [isLoadingInfo, setIsLoadingInfo] = useState(true);
   const [isLoadingSpecs, setIsLoadingSpecs] = useState(true);
   const [isLoadingReviews, setIsLoadingReviews] = useState(true);
+
+  const carLocalImages = getCarImages(car.name);
 
   const { colors } = useTheme();
   const styles = useThemedStyles(createStyles);
@@ -89,9 +83,7 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
       }),
     ]).start();
 
-    loadUnsplashImages();
     loadDataProgressively();
-
     addToHistory(car);
     recordCarView(car._id);
   }, []);
@@ -118,30 +110,8 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([handleRefreshImages(), loadCarReviews(car._id)]);
+    await loadCarReviews(car._id);
     setRefreshing(false);
-  };
-
-  const loadUnsplashImages = async () => {
-    try {
-      const images = await getCarImages(car._id, car);
-      if (images && images.length > 0) {
-        setUnsplashImages(images.map((img) => ({ uri: img.urls.regular })));
-      }
-    } catch (error) {
-      console.error("Erro ao carregar imagens Unsplash:", error);
-    } finally {
-      setHasLoadedImages(true);
-    }
-  };
-
-  const handleRefreshImages = async () => {
-    try {
-      await refreshCarImages(car._id, car);
-      await loadUnsplashImages();
-    } catch (error) {
-      console.error("Erro ao atualizar imagens:", error);
-    }
   };
 
   const SpecRow: React.FC<SpecRowProps> = ({ icon, label, value }) => (
@@ -282,29 +252,10 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
             position: "relative",
           }}
         >
-          {loadingImages && !hasLoadedImages ? (
-            <View
-              style={{
-                flex: 1,
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <ActivityIndicator size="large" color={colors.accent} />
-              <Text
-                style={{
-                  color: colors.textSecondary,
-                  marginTop: 12,
-                  fontSize: 14,
-                }}
-              >
-                Carregando fotos do Unsplash...
-              </Text>
-            </View>
-          ) : unsplashImages.length > 0 ? (
+          {carLocalImages.length > 0 ? (
             <>
               <FlatList
-                data={unsplashImages}
+                data={carLocalImages}
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
@@ -341,24 +292,8 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                 <Text
                   style={{ color: "#fff", fontWeight: "700", fontSize: 13 }}
                 >
-                  Ver todas ({unsplashImages.length})
+                  Ver todas ({carLocalImages.length})
                 </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={{
-                  position: "absolute",
-                  top: 16,
-                  right: 16,
-                  backgroundColor: "rgba(0,0,0,0.7)",
-                  width: 40,
-                  height: 40,
-                  borderRadius: 20,
-                  alignItems: "center",
-                  justifyContent: "center",
-                }}
-                onPress={handleRefreshImages}
-              >
-                <Ionicons name="refresh" size={20} color="#fff" />
               </TouchableOpacity>
             </>
           ) : (
@@ -393,20 +328,6 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
               >
                 Nenhuma imagem disponível
               </Text>
-              <TouchableOpacity
-                style={{
-                  marginTop: 16,
-                  backgroundColor: colors.accent,
-                  paddingHorizontal: 20,
-                  paddingVertical: 10,
-                  borderRadius: 12,
-                }}
-                onPress={handleRefreshImages}
-              >
-                <Text style={{ color: "#fff", fontWeight: "700" }}>
-                  Carregar Fotos
-                </Text>
-              </TouchableOpacity>
             </View>
           )}
         </View>
@@ -520,7 +441,7 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
             )}
           </View>
 
-          {unsplashImages.length > 0 && (
+          {carLocalImages.length > 0 && (
             <View style={styles.section}>
               <View
                 style={{
@@ -531,7 +452,7 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                 }}
               >
                 <Text style={styles.sectionTitle}>
-                  Galeria ({unsplashImages.length} fotos)
+                  Galeria ({carLocalImages.length} fotos)
                 </Text>
                 <TouchableOpacity onPress={() => setGalleryVisible(true)}>
                   <Text
@@ -546,7 +467,7 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                 </TouchableOpacity>
               </View>
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-                {unsplashImages.slice(0, 6).map((image, index) => (
+                {carLocalImages.slice(0, 6).map((image, index) => (
                   <TouchableOpacity
                     key={index}
                     style={{
@@ -560,8 +481,9 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                     <Image
                       source={image}
                       style={{ width: "100%", height: "100%" }}
+                      resizeMode="cover"
                     />
-                    {index === 5 && unsplashImages.length > 6 && (
+                    {index === 5 && carLocalImages.length > 6 && (
                       <View
                         style={{
                           position: "absolute",
@@ -581,7 +503,7 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
                             fontWeight: "700",
                           }}
                         >
-                          +{unsplashImages.length - 6}
+                          +{carLocalImages.length - 6}
                         </Text>
                       </View>
                     )}
@@ -694,14 +616,6 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
             </TouchableOpacity>
           </View>
 
-          {unsplashImages.length > 0 && (
-            <View style={{ padding: 16, alignItems: "center" }}>
-              <Text style={{ fontSize: 11, color: colors.textTertiary }}>
-                📸 Fotos por <Text style={{ fontWeight: "700" }}>Unsplash</Text>
-              </Text>
-            </View>
-          )}
-
           <View style={styles.bottomSpacing} />
         </Animated.View>
       </ScrollView>
@@ -712,10 +626,10 @@ export default function CarDetailsScreen({ navigation, route }: Props) {
         car={car}
       />
 
-      {unsplashImages.length > 0 && (
+      {carLocalImages.length > 0 && (
         <ImageGalleryModal
           visible={galleryVisible}
-          images={unsplashImages}
+          images={carLocalImages}
           initialIndex={selectedImageIndex}
           onClose={() => setGalleryVisible(false)}
         />
