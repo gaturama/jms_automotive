@@ -36,7 +36,6 @@ export const FavoritesProvider: React.FC<FavoritesProviderProps> = ({ children }
     try {
       setLoading(true);
       const data = await favoriteService.getFavorites();
-      // O backend retorna { car, ... }, então extrai só o car
       setFavorites(data.map((item: any) => item.car));
     } catch (error) {
       console.error('Erro ao carregar favoritos:', error);

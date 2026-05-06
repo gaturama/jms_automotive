@@ -366,14 +366,15 @@ const cars = [
     description:
       "O Rolls-Royce Phantom é o ápice do luxo automotivo — uma obra-prima de conforto, elegância e presença imponente que redefiniu o que significa dirigir (ou ser conduzido) com requinte absoluto. Cada Phantom é construído à mão, com atenção obsessiva aos mínimos detalhes, refletindo o compromisso da marca com exclusividade e perfeição.",
   },
+  
 ];
 
 const seed = async () => {
   try {
     const uri = process.env.MONGODB_URI as string;
-    const uriWithDb = uri.includes("/showroom")
+    const uriWithDb = uri.includes("/test")
       ? uri
-      : uri.replace("/?", "/showroom?");
+      : uri.replace("/?", "/test?");
     await mongoose.connect(uriWithDb);
     console.log("✅ MongoDB conectado");
 

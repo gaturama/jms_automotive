@@ -318,22 +318,134 @@ export const carImages: Record<string, any[]> = {
     require("../assets/carrera_9.jpg"),
     require("../assets/carrera_10.jpg"),
   ],
+
+  pagani_utopia: [
+    require("../assets/utopia_1.jpg"),
+    require("../assets/utopia_2.jpg"),
+    require("../assets/utopia_3.jpg"),
+    require("../assets/utopia_4.jpg"),
+    require("../assets/utopia_5.jpg"),
+    require("../assets/utopia_6.jpg"),
+    require("../assets/utopia_7.jpg"),
+    require("../assets/utopia_8.jpg"),
+    require("../assets/utopia_9.jpg"),
+    require("../assets/utopia_10.jpg"),
+  ],
+
+  maserati_gt2: [
+    require("../assets/maserati_1.jpg"),
+    require("../assets/maserati_2.jpg"),
+    require("../assets/maserati_3.jpg"),
+    require("../assets/maserati_4.jpg"),
+    require("../assets/maserati_5.jpg"),
+    require("../assets/maserati_6.jpg"),
+    require("../assets/maserati_7.jpg"),
+    require("../assets/maserati_8.jpg"),
+    require("../assets/maserati_9.jpg"),
+    require("../assets/maserati_10.jpg"),
+  ],
+
+  lotus_emira: [
+    require("../assets/lotus_1.jpg"),
+    require("../assets/lotus_2.jpg"),
+    require("../assets/lotus_3.jpg"),
+    require("../assets/lotus_4.jpg"),
+    require("../assets/lotus_5.jpg"),
+  ],
+
+  alfa_romeo_giulia_quadrifoglio: [
+    require("../assets/estrema_1.jpg"),
+    require("../assets/estrema_2.jpg"),
+    require("../assets/estrema_3.jpg"),
+    require("../assets/estrema_4.jpg"),
+    require("../assets/estrema_5.jpg"),
+  ],
+
+  cadillac: [
+    require("../assets/cadillac_1.jpg"),
+    require("../assets/cadillac_2.jpg"),
+    require("../assets/cadillac_3.jpg"),
+    require("../assets/cadillac_4.jpg"),
+    require("../assets/cadillac_5.jpg"),
+    require("../assets/cadillac_6.jpg"),
+  ],
+
+  gordon_murray: [
+    require("../assets/gordon_1.jpg"),
+    require("../assets/gordon_2.jpg"),
+    require("../assets/gordon_3.jpg"),
+    require("../assets/gordon_4.jpg"),
+    require("../assets/gordon_5.jpg"),
+    require("../assets/gordon_6.jpg"),
+    require("../assets/gordon_7.jpg"),
+    require("../assets/gordon_8.jpg"),
+    require("../assets/gordon_9.jpg"),
+    require("../assets/gordon_10.jpg"),
+  ],
+
+  honda_civic_type_r: [
+    require("../assets/civic_1.jpg"),
+    require("../assets/civic_2.jpg"),
+    require("../assets/civic_3.jpg"),
+    require("../assets/civic_4.jpg"),
+    require("../assets/civic_5.jpg"),
+  ],
+
+  mazda_rx7: [
+    require("../assets/mazda_1.jpg"),
+    require("../assets/mazda_2.jpg"),
+    require("../assets/mazda_3.jpg"),
+    require("../assets/mazda_4.jpg"),
+  ],
+
+  mitsubishi_lancer_evolution_x: [
+    require("../assets/lancer_1.jpg"),
+    require("../assets/lancer_2.jpg"),
+    require("../assets/lancer_3.jpg"),
+    require("../assets/lancer_4.jpg"),
+    require("../assets/lancer_5.jpg"),
+  ],
+
+  nissan_370z: [
+    require("../assets/nismo_1.jpg"),
+    require("../assets/nismo_2.jpg"),
+    require("../assets/nismo_3.jpg"),
+    require("../assets/nismo_4.jpg"),
+    require("../assets/nismo_5.jpg"),
+  ]
+};
+
+const carKeyMap: Record<string, string> = {
+  bugatti_chiron_sport: "bugatti_chiron",
+  chevrolet_corvette_c8_stingray: "chevrolet_corvette_c8",
+  dodge_charger_str_hellcat: "dodge_charger_hellcat",
+  volkswagen_arteon_shooting_brake_r: "volkswagen_arteon",
+  lexus_ls_500: "lexus_ls",
+  ford_mustang_gt_performance: "ford_mustang_gt",
+  nissan_silvia_s15_spec_r: "nissan_silvia_s15",
+  audi_rs6_avant_performance: "audi_rs6_avant",
+  maserati_gt2_stradale: "maserati_gt2",
+  lotus_emira_v6_se: "lotus_emira",
+  alfa_romeo_giulia_quadrifoglio_estrema:
+    "alfa_romeo_giulia_quadrifoglio",
+  cadillac_ct5_v_blackwing_f1_collector_series: "cadillac",
+  gordon_murray_automotive_t_33: "gordon_murray",
+  honda_civic_type_r_ultimate_edition: "honda_civic_type_r",
+  mazda_rx_7_fortune_by_veilside: "mazda_rx7",
+  mitsubishi_lancer_evolution_x_carbon_series:
+    "mitsubishi_lancer_evolution_x",
+  nissan_370z_s_tune_by_nismo: "nissan_370z",
 };
 
 export const getCarImages = (carName: string): any[] => {
-  const key = carName
+  const rawKey = carName
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
     .replace(/[^a-z0-9]+/g, "_")
     .replace(/^_|_$/g, "");
 
-  const exactMatch = carImages[key];
-  if (exactMatch) return exactMatch;
+  const key = carKeyMap[rawKey] || rawKey;
 
-  const partialKey = Object.keys(carImages).find(
-    (k) => key.includes(k) || k.includes(key.split("_")[0]),
-  );
-
-  return partialKey ? carImages[partialKey] : [];
+  return carImages[key] || [];
 };
