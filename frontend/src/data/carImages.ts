@@ -412,6 +412,61 @@ export const carImages: Record<string, any[]> = {
     require("../assets/nismo_3.jpg"),
     require("../assets/nismo_4.jpg"),
     require("../assets/nismo_5.jpg"),
+  ],
+
+  acura_nsx_type_s: [
+    require("../assets/acura_1.jpg"),
+    require("../assets/acura_2.jpg"),
+    require("../assets/acura_3.jpg"),
+    require("../assets/acura_4.jpg"),
+    require("../assets/acura_5.jpg"),
+    require("../assets/acura_6.jpg"),
+    require("../assets/acura_7.jpg"),
+    require("../assets/acura_8.jpg"),
+    require("../assets/acura_9.jpg"),
+    require("../assets/acura_10.jpg"),
+  ],
+
+  bugatti_la_voiture_noire: [
+    require("../assets/voiture_1.jpg"),
+    require("../assets/voiture_2.jpg"),
+    require("../assets/voiture_3.jpg"),
+    require("../assets/voiture_4.jpg"),
+    require("../assets/voiture_5.jpg"),
+    require("../assets/voiture_6.jpg"),
+    require("../assets/voiture_7.jpg"),
+    require("../assets/voiture_8.jpg"),
+    require("../assets/voiture_9.jpg"),
+    require("../assets/voiture_10.jpg"),
+  ],
+
+  mercedes_amg_g63: [
+    require("../assets/g63_1.jpg"),
+    require("../assets/g63_2.jpg"),
+    require("../assets/g63_3.jpg"),
+    require("../assets/g63_4.jpg"),
+    require("../assets/g63_5.jpg"),
+    require("../assets/g63_6.jpg"),
+    require("../assets/g63_7.jpg"),
+    require("../assets/g63_8.jpg"),
+    require("../assets/g63_9.jpg"),
+    require("../assets/g63_10.jpg"),
+  ],
+
+  ferrari_la_ferrari: [
+    require("../assets/laferrari_1.jpg"),
+    require("../assets/laferrari_2.jpg"),
+    require("../assets/laferrari_3.jpg"),
+    require("../assets/laferrari_4.jpg"),
+    require("../assets/laferrari_5.jpg"),
+  ],
+
+  subaru_impreza_wrx: [
+    require("../assets/wrx_1.jpg"),
+    require("../assets/wrx_2.jpg"),
+    require("../assets/wrx_3.jpg"),
+    require("../assets/wrx_4.jpg"),
+    require("../assets/wrx_5.jpg"),
   ]
 };
 
@@ -435,6 +490,7 @@ const carKeyMap: Record<string, string> = {
   mitsubishi_lancer_evolution_x_carbon_series:
     "mitsubishi_lancer_evolution_x",
   nissan_370z_s_tune_by_nismo: "nissan_370z",
+  mercedes_benz_amg_g63: "mercedes_amg_g63",
 };
 
 export const getCarImages = (carName: string): any[] => {
