@@ -15,6 +15,7 @@ import { BlurView } from "expo-blur";
 import { useTheme } from "../context/ThemeContext";
 import { Car } from "../navigation/car";
 import { HapticFeedback } from "../utils/Haptics";
+import { getCarDetailedDescription } from "../data/carDetailsDescriptions";
 
 interface CarDetailsModalProps {
   visible: boolean;
@@ -36,6 +37,8 @@ export default function CarDetailsModal({
 
   useEffect(() => {
     if (visible) {
+      console.log("car.name:", car.name);
+      console.log("detalhes:", getCarDetailedDescription(car.name));
       HapticFeedback.light();
       setIsContentReady(false);
 
@@ -78,7 +81,8 @@ export default function CarDetailsModal({
     onClose();
   };
 
-  const detailedDescription = visible && isContentReady ? car.description : "";
+  const carDetails =
+    visible && isContentReady ? getCarDetailedDescription(car.name) : null;
 
   const styles = createStyles(colors);
 
@@ -178,11 +182,78 @@ export default function CarDetailsModal({
               </View>
 
               <View style={styles.descriptionContainer}>
-                <Text style={styles.descriptionText}>
-                  {detailedDescription ||
-                    car.description ||
-                    "Descrição não disponível."}
-                </Text>
+                {carDetails ? (
+                  <>
+                    {carDetails.fullDescription && (
+                      <View style={styles.descriptionContainer}>
+                        <Text style={styles.descriptionText}>
+                          {carDetails.fullDescription}
+                        </Text>
+                      </View>
+                    )}
+
+                    {carDetails.history && (
+                      <View style={styles.descriptionContainer}>
+                        <Text style={styles.sectionTitle}>
+                          História e Legado
+                        </Text>
+                        <Text style={styles.descriptionText}>
+                          {carDetails.history}
+                        </Text>
+                      </View>
+                    )}
+
+                    {carDetails.technology && (
+                      <View style={styles.descriptionContainer}>
+                        <Text style={styles.sectionTitle}>
+                          Tecnologia e Inovação
+                        </Text>
+                        <Text style={styles.descriptionText}>
+                          {carDetails.technology}
+                        </Text>
+                      </View>
+                    )}
+
+                    {carDetails.performance && (
+                      <View style={styles.descriptionContainer}>
+                        <Text style={styles.sectionTitle}>
+                          Performance e Dinâmica
+                        </Text>
+                        <Text style={styles.descriptionText}>
+                          {carDetails.performance}
+                        </Text>
+                      </View>
+                    )}
+
+                    {carDetails.design && (
+                      <View style={styles.descriptionContainer}>
+                        <Text style={styles.sectionTitle}>
+                          Design e Aerodinâmica
+                        </Text>
+                        <Text style={styles.descriptionText}>
+                          {carDetails.design}
+                        </Text>
+                      </View>
+                    )}
+
+                    {carDetails.luxury && (
+                      <View style={styles.descriptionContainer}>
+                        <Text style={styles.sectionTitle}>
+                          Luxo e Acabamento
+                        </Text>
+                        <Text style={styles.descriptionText}>
+                          {carDetails.luxury}
+                        </Text>
+                      </View>
+                    )}
+                  </>
+                ) : (
+                  <View style={styles.descriptionContainer}>
+                    <Text style={styles.descriptionText}>
+                      {car.description || "Descrição não disponível."}
+                    </Text>
+                  </View>
+                )}
               </View>
 
               <View style={{ height: 40 }} />
