@@ -35,6 +35,7 @@ import { useTheme } from "../context/ThemeContext";
 import { SearchBar } from "../components/SearchBar";
 import { createStyles } from "../styles/stylesHome";
 import { carService } from "../service/car.service";
+import { CarOfTheDay } from "../components/CarOfTheDay";
 import { RootStackParamList } from "../navigation/types";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { AdvancedFilterHelper } from "../utils/AdvancedFilterHelper";
@@ -43,6 +44,7 @@ import {
   AdvancedSearchModal,
   AdvancedFilters,
 } from "../components/AdvancedSearchModal";
+import { SpotifyPlayer } from "../components/SpotifyPlayer";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -428,6 +430,11 @@ export default function HomeScreen({ navigation }: Props) {
           <SkeletonCarCard />
           <SkeletonCarCard />
           <SkeletonCarCard />
+
+          <CarOfTheDay
+            onPress={(car) => navigation.navigate("CarDetails", { car })}
+          />
+          <SpotifyPlayer />
         </ScrollView>
       ) : filteredAndSortedCars.length === 0 ? (
         <View style={styles.emptyState}>

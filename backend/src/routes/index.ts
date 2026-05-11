@@ -5,6 +5,7 @@ import userRoutes from "./user.routes";
 import favoriteRoutes from "./favorite.routes";
 import reviewRoutes from "./review.routes";
 import historyRoutes from "./history.routes";
+import configRoutes from "./config.routes";
 
 const router = Router();
 
@@ -14,5 +15,6 @@ router.use("/users", userRoutes);
 router.use("/favorites", favoriteRoutes);
 router.use("/reviews", reviewRoutes);
 router.use("/history", historyRoutes);
+router.use("/config", configRoutes);
 
 export default router;
