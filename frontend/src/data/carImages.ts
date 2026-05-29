@@ -490,7 +490,7 @@ const carKeyMap: Record<string, string> = {
   mitsubishi_lancer_evolution_x_carbon_series:
     "mitsubishi_lancer_evolution_x",
   nissan_370z_s_tune_by_nismo: "nissan_370z",
-  mercedes_benz_amg_g63: "mercedes_amg_g63",
+  mercedes_benz_amg_g_63: "mercedes_amg_g63",
 };
 
 export const getCarImages = (carName: string): any[] => {

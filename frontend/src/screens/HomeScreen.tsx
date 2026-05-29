@@ -36,6 +36,7 @@ import { SearchBar } from "../components/SearchBar";
 import { createStyles } from "../styles/stylesHome";
 import { carService } from "../service/car.service";
 import { CarOfTheDay } from "../components/CarOfTheDay";
+import { SpotifyPlayer } from "../components/SpotifyPlayer";
 import { RootStackParamList } from "../navigation/types";
 import { useThemedStyles } from "../hooks/useThemedStyles";
 import { AdvancedFilterHelper } from "../utils/AdvancedFilterHelper";
@@ -44,7 +45,6 @@ import {
   AdvancedSearchModal,
   AdvancedFilters,
 } from "../components/AdvancedSearchModal";
-import { SpotifyPlayer } from "../components/SpotifyPlayer";
 
 type Props = NativeStackScreenProps<RootStackParamList, "Home">;
 
@@ -157,9 +157,7 @@ export default function HomeScreen({ navigation }: Props) {
     HapticFeedback.selection();
   };
 
-  const handleApplyFilters = () => {
-    setFilterModalVisible(false);
-  };
+  const handleApplyFilters = () => setFilterModalVisible(false);
 
   const handleResetFilters = () => {
     setSortBy("year-asc");
@@ -192,166 +190,95 @@ export default function HomeScreen({ navigation }: Props) {
     advancedFilters,
     defaultFilters,
   );
-
   const activeFiltersCount = AdvancedFilterHelper.countActiveFilters(
     advancedFilters,
     defaultFilters,
   );
-
   const availableBrands = useMemo(
     () => AdvancedFilterHelper.extractUniqueBrands(cars),
     [cars],
   );
 
-  return (
-    <View style={styles.container}>
-      <StatusBar
-        barStyle={colors.statusBarStyle}
-        backgroundColor={colors.accent}
-      />
-
-      <View style={styles.backgroundParticles}>
-        <Animated.View style={[styles.particle, styles.particle1]} />
-        <Animated.View style={[styles.particle, styles.particle2]} />
-        <Animated.View style={[styles.particle, styles.particle3]} />
-      </View>
-
+  const ListHeader = useCallback(
+    () => (
       <Animated.View
-        style={[
-          styles.header,
-          {
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          },
-        ]}
+        style={{ opacity: fadeAnim, transform: [{ translateY: slideAnim }] }}
       >
-        <TouchableOpacity
-          onPress={() => {
-            HapticFeedback.light();
-            navigation.navigate("Favorites");
-          }}
-          style={styles.headerButton}
+        <SearchBar
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+          onClear={handleClearSearch}
+          placeholder="Buscar por nome, marca ou modelo..."
+        />
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterRowScrollContent}
+          style={styles.filterRowScroll}
         >
-          <Ionicons name="heart" size={24} color="white" />
-        </TouchableOpacity>
-
-        <View style={styles.headerCenter}>
-          <Ionicons
-            name="car-sport"
-            size={24}
-            color="white"
-            style={{ marginRight: 8 }}
-          />
-          <Text style={styles.headerTitle}>Garagem Premium</Text>
-        </View>
-
-        <TouchableOpacity onPress={handleProfile} style={styles.headerButton}>
-          <Ionicons name="person-circle" size={28} color="white" />
-        </TouchableOpacity>
-      </Animated.View>
-
-      {isLoading ? (
-        <SkeletonSearchBar />
-      ) : (
-        <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }}
-        >
-          <SearchBar
-            value={searchQuery}
-            onChangeText={setSearchQuery}
-            onClear={handleClearSearch}
-            placeholder="Buscar por nome, marca ou modelo..."
-          />
-        </Animated.View>
-      )}
-
-      {isLoading ? (
-        <SkeletonFilterRow />
-      ) : (
-        <Animated.View
-          style={{
-            opacity: fadeAnim,
-            transform: [{ translateY: slideAnim }],
-          }}
-        >
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterRowScrollContent}
-            style={styles.filterRowScroll}
+          <TouchableOpacity
+            style={[
+              styles.filterButton,
+              hasActiveFilters && {
+                backgroundColor: colors.accent,
+                borderColor: colors.accent,
+              },
+            ]}
+            onPress={handleOpenAdvancedSearch}
           >
-            <TouchableOpacity
+            <Ionicons
+              name="search"
+              size={20}
+              color={hasActiveFilters ? "#fff" : colors.textPrimary}
+            />
+            <Text
               style={[
-                styles.filterButton,
-                hasActiveFilters && {
-                  backgroundColor: colors.accent,
-                  borderColor: colors.accent,
-                },
+                styles.filterButtonText,
+                hasActiveFilters && { color: "#fff" },
               ]}
-              onPress={handleOpenAdvancedSearch}
             >
-              <Ionicons
-                name="search"
-                size={20}
-                color={hasActiveFilters ? "#fff" : colors.textPrimary}
-              />
-              <Text
-                style={[
-                  styles.filterButtonText,
-                  hasActiveFilters && { color: "#fff" },
-                ]}
-              >
-                Busca Avançada
-              </Text>
-              {activeFiltersCount > 0 && (
-                <View style={styles.filterBadge}>
-                  <Text style={styles.filterBadgeText}>
-                    {activeFiltersCount}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+              Busca Avançada
+            </Text>
+            {activeFiltersCount > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>{activeFiltersCount}</Text>
+              </View>
+            )}
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.filterButton}
-              onPress={() => {
-                HapticFeedback.light();
-                setFilterModalVisible(true);
-              }}
-            >
-              <Ionicons name="options" size={20} color={colors.textPrimary} />
-              <Text style={styles.filterButtonText}>Ordenar</Text>
-              {getActiveFilterCount() > 0 && (
-                <View style={styles.filterBadge}>
-                  <Text style={styles.filterBadgeText}>
-                    {getActiveFilterCount()}
-                  </Text>
-                </View>
-              )}
-            </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.filterButton}
+            onPress={() => {
+              HapticFeedback.light();
+              setFilterModalVisible(true);
+            }}
+          >
+            <Ionicons name="options" size={20} color={colors.textPrimary} />
+            <Text style={styles.filterButtonText}>Ordenar</Text>
+            {getActiveFilterCount() > 0 && (
+              <View style={styles.filterBadge}>
+                <Text style={styles.filterBadgeText}>
+                  {getActiveFilterCount()}
+                </Text>
+              </View>
+            )}
+          </TouchableOpacity>
 
-            <TouchableOpacity
-              style={styles.compareButton}
-              onPress={() => {
-                HapticFeedback.light();
-                navigation.navigate("Compare");
-              }}
-            >
-              <Ionicons
-                name="git-compare"
-                size={18}
-                color={colors.textPrimary}
-              />
-              <Text style={styles.filterButtonText}>Comparar Carros</Text>
-            </TouchableOpacity>
-          </ScrollView>
-        </Animated.View>
-      )}
+          <TouchableOpacity
+            style={styles.compareButton}
+            onPress={() => {
+              HapticFeedback.light();
+              navigation.navigate("Compare");
+            }}
+          >
+            <Ionicons name="git-compare" size={18} color={colors.textPrimary} />
+            <Text style={styles.filterButtonText}>Comparar Carros</Text>
+          </TouchableOpacity>
+        </ScrollView>
 
-      {!isLoading && (
+        <SpotifyPlayer />
+
         <View style={styles.resultCountContainer}>
           <Text style={styles.resultCountText}>
             {filteredAndSortedCars.length}{" "}
@@ -360,30 +287,12 @@ export default function HomeScreen({ navigation }: Props) {
               : "carros encontrados"}
           </Text>
         </View>
-      )}
 
-      {isLoading ? (
-        <View
-          style={{
-            flexDirection: "row",
-            gap: 12,
-            paddingHorizontal: 16,
-            marginBottom: 16,
-          }}
-        >
-          <SkeletonStatCard />
-          <SkeletonStatCard />
-          <SkeletonStatCard />
-        </View>
-      ) : (
-        filteredAndSortedCars.length > 0 && (
+        {filteredAndSortedCars.length > 0 && (
           <Animated.View
             style={[
               styles.statsBar,
-              {
-                opacity: fadeAnim,
-                transform: [{ translateY: slideAnim }],
-              },
+              { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
             ]}
           >
             <View style={styles.statItem}>
@@ -417,54 +326,114 @@ export default function HomeScreen({ navigation }: Props) {
               <Text style={styles.statLabel}>Valor</Text>
             </View>
           </Animated.View>
-        )
-      )}
+        )}
+
+        <CarOfTheDay
+          onPress={(car) => navigation.navigate("CarDetails", { car })}
+        />
+      </Animated.View>
+    ),
+    [filteredAndSortedCars, searchQuery, hasActiveFilters, activeFiltersCount],
+  );
+
+  return (
+    <View style={styles.container}>
+      <StatusBar
+        barStyle={colors.statusBarStyle}
+        backgroundColor={colors.accent}
+      />
+
+      <View style={styles.backgroundParticles}>
+        <Animated.View style={[styles.particle, styles.particle1]} />
+        <Animated.View style={[styles.particle, styles.particle2]} />
+        <Animated.View style={[styles.particle, styles.particle3]} />
+      </View>
+
+      <Animated.View
+        style={[
+          styles.header,
+          { opacity: fadeAnim, transform: [{ translateY: slideAnim }] },
+        ]}
+      >
+        <TouchableOpacity
+          onPress={() => {
+            HapticFeedback.light();
+            navigation.navigate("Favorites");
+          }}
+          style={styles.headerButton}
+        >
+          <Ionicons name="heart" size={24} color="white" />
+        </TouchableOpacity>
+
+        <View style={styles.headerCenter}>
+          <Ionicons
+            name="car-sport"
+            size={24}
+            color="white"
+            style={{ marginRight: 8 }}
+          />
+          <Text style={styles.headerTitle}>Garagem Premium</Text>
+        </View>
+
+        <TouchableOpacity onPress={handleProfile} style={styles.headerButton}>
+          <Ionicons name="person-circle" size={28} color="white" />
+        </TouchableOpacity>
+      </Animated.View>
 
       {isLoading ? (
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={styles.listContent}
-          showsVerticalScrollIndicator={false}
-        >
-          <SkeletonCarCard />
-          <SkeletonCarCard />
-          <SkeletonCarCard />
-          <SkeletonCarCard />
-
-          <CarOfTheDay
-            onPress={(car) => navigation.navigate("CarDetails", { car })}
-          />
-          <SpotifyPlayer />
-        </ScrollView>
-      ) : filteredAndSortedCars.length === 0 ? (
-        <View style={styles.emptyState}>
-          <Ionicons
-            name="car-sport-outline"
-            size={80}
-            color={colors.textTertiary}
-          />
-          <Text style={styles.emptyTitle}>Nenhum carro encontrado</Text>
-          <Text style={styles.emptyText}>
-            Tente ajustar sua busca ou filtros
-          </Text>
-          <TouchableOpacity
-            style={styles.emptyButton}
-            onPress={() => {
-              setSearchQuery("");
-              handleResetFilters();
-              handleResetAdvancedFilters();
+        <ScrollView style={{ flex: 1 }} showsVerticalScrollIndicator={false}>
+          <SkeletonSearchBar />
+          <SkeletonFilterRow />
+          <View
+            style={{
+              flexDirection: "row",
+              gap: 12,
+              paddingHorizontal: 16,
+              marginBottom: 16,
             }}
           >
-            <Text style={styles.emptyButtonText}>Limpar Filtros</Text>
-          </TouchableOpacity>
-        </View>
+            <SkeletonStatCard />
+            <SkeletonStatCard />
+            <SkeletonStatCard />
+          </View>
+          <View style={{ paddingHorizontal: 16 }}>
+            <SkeletonCarCard />
+            <SkeletonCarCard />
+            <SkeletonCarCard />
+            <SkeletonCarCard />
+          </View>
+        </ScrollView>
       ) : (
         <FlatList
           data={filteredAndSortedCars}
           keyExtractor={(item) => item._id}
+          ListHeaderComponent={<ListHeader />}
           renderItem={({ item }) => (
             <CarCard car={item} onPress={() => handleCarPress(item)} />
           )}
+          ListEmptyComponent={
+            <View style={styles.emptyState}>
+              <Ionicons
+                name="car-sport-outline"
+                size={80}
+                color={colors.textTertiary}
+              />
+              <Text style={styles.emptyTitle}>Nenhum carro encontrado</Text>
+              <Text style={styles.emptyText}>
+                Tente ajustar sua busca ou filtros
+              </Text>
+              <TouchableOpacity
+                style={styles.emptyButton}
+                onPress={() => {
+                  setSearchQuery("");
+                  handleResetFilters();
+                  handleResetAdvancedFilters();
+                }}
+              >
+                <Text style={styles.emptyButtonText}>Limpar Filtros</Text>
+              </TouchableOpacity>
+            </View>
+          }
           contentContainerStyle={styles.listContent}
           showsVerticalScrollIndicator={false}
           refreshControl={

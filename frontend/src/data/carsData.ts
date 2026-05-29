@@ -704,8 +704,8 @@ export const MOCK_CARS: Car[] = [
   },
   {
     _id: "38",
-    name: "Mercedes-Benz AMG G 63",
-    brand: "Mercedes-Benz",
+    name: "Mercedes Benz AMG G 63",
+    brand: "Mercedes Benz",
     carModel: "AMG G 63",
     year: 2026,
     engine: "4.0L V8 Twin-Turbo",
