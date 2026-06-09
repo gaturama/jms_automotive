@@ -50,8 +50,8 @@ export const styles = StyleSheet.create({
     paddingVertical: 14,
     paddingHorizontal: 32,
     minWidth: 120,
-    backgroundColor: "#004643",
-    shadowColor: "#004643",
+    backgroundColor: "#B8860B",
+    shadowColor: "#B8860B",
     shadowOffset: {
       width: 0,
       height: 6,

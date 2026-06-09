@@ -59,7 +59,7 @@ export const createStyles = (colors: any) =>
     price: {
       fontSize: 28,
       fontWeight: "700",
-      color: "#4CAF50",
+      color: "#64748B",
       letterSpacing: 0.5,
     },
 

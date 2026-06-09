@@ -346,12 +346,12 @@ export default function AdminPanelScreen({ navigation }: Props) {
               width: 44,
               height: 44,
               borderRadius: 22,
-              backgroundColor: "#1DB95420",
+              backgroundColor: "#64748B",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Ionicons name="musical-notes" size={22} color="#1DB954" />
+            <Ionicons name="musical-notes" size={22} color="#64748B" />
           </View>
           <View>
             <Text
@@ -443,7 +443,7 @@ export default function AdminPanelScreen({ navigation }: Props) {
 
         <TouchableOpacity
           style={{
-            backgroundColor: "#1DB954",
+            backgroundColor: "#64748B",
             borderRadius: 14,
             paddingVertical: 14,
             alignItems: "center",
@@ -482,9 +482,9 @@ export default function AdminPanelScreen({ navigation }: Props) {
             gap: 12,
           }}
         >
-          <Ionicons name="checkmark-circle" size={24} color="#1DB954" />
+          <Ionicons name="checkmark-circle" size={24} color="#64748B" />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 13, fontWeight: "700", color: "#1DB954" }}>
+            <Text style={{ fontSize: 13, fontWeight: "700", color: "#64748B" }}>
               Preview
             </Text>
             <Text

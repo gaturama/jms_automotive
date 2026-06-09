@@ -51,22 +51,22 @@ const ThemeContext = createContext<ThemeContextData | undefined>(undefined);
 const THEME_STORAGE_KEY = "@CarShowroom:theme";
 
 const darkColors: ThemeColors = {
-  background: "#121212",
-  surface: "#1e1e1e",
-  surfaceVariant: "#2d2d2d",
+  background: "#0D0D0D",
+  surface: "#0F172A",
+  surfaceVariant: "#1E293B",
 
   glassBackground: "rgba(255, 255, 255, 0.05)",
   glassBorder: "rgba(255, 255, 255, 0.1)",
 
-  particleColor: "#004643",
-  particleColorSecondary: "#9DBDB8",
+  particleColor: "#64748B",
+  particleColorSecondary: "#94A3B8",
 
   textPrimary: "#FFFFFF",
   textSecondary: "rgba(255, 255, 255, 0.7)",
   textTertiary: "rgba(255, 255, 255, 0.5)",
 
-  accent: "#004643",
-  accentLight: "#9DBDB8",
+  accent: "#64748B",
+  accentLight: "#94A3B8",
 
   statusBarStyle: "light-content",
 
@@ -88,15 +88,15 @@ const lightColors: ThemeColors = {
   glassBackground: "rgba(255, 255, 255, 0.9)",
   glassBorder: "rgba(0, 0, 0, 0.1)",
 
-  particleColor: "#004643",
-  particleColorSecondary: "#9DBDB8",
+  particleColor: "#64748B",
+  particleColorSecondary: "#94A3B8",
 
   textPrimary: "#1A1A1A",
   textSecondary: "rgba(0, 0, 0, 0.7)",
   textTertiary: "rgba(0, 0, 0, 0.5)",
 
-  accent: "#004643",
-  accentLight: "#9DBDB8",
+  accent: "#64748B",
+  accentLight: "#94A3B8",
 
   statusBarStyle: "dark-content",
 
