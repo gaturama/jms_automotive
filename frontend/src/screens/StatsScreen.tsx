@@ -300,13 +300,13 @@ export default function StatsScreen({ navigation }: any) {
                     width: 48,
                     height: 48,
                     borderRadius: 24,
-                    backgroundColor: `#4CAF5020`,
+                    backgroundColor: `#0F766E`,
                     alignItems: "center",
                     justifyContent: "center",
                     marginBottom: 8,
                   }}
                 >
-                  <Ionicons name="calendar" size={24} color="#4CAF50" />
+                  <Ionicons name="calendar" size={24} color="#0F766E" />
                 </View>
                 <Text
                   style={{

@@ -398,7 +398,7 @@ const styles = StyleSheet.create({
   },
 
   thumbnailActive: {
-    borderColor: '#004643',
+    borderColor: '#0F766E',
   },
 
   thumbnailImage: {

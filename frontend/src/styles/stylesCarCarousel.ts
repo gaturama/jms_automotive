@@ -38,8 +38,8 @@ export const styles = StyleSheet.create({
     width: 24,
     height: 8,
     borderRadius: 4,
-    backgroundColor: "#64748B",
-    shadowColor: "#64748B",
+    backgroundColor: "#0F766E",
+    shadowColor: "#0F766E",
     shadowOffset: {
       width: 0,
       height: 2,

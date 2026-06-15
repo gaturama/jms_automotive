@@ -57,7 +57,7 @@ export const RatingsSection: React.FC<RatingsSectionProps> = ({ car }) => {
       setAlertMessage(result.message);
     }
     setModalVisible(false);
-    await loadCarReviews(car._id); // recarrega do backend
+    await loadCarReviews(car._id); 
     setAlertVisible(true);
   };
 

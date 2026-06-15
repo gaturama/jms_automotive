@@ -40,7 +40,7 @@ export const TurbineRating: React.FC<TurbineRatingProps> = ({
         <Ionicons
           name={filled ? "speedometer" : halfFilled ? "speedometer-outline" : "speedometer-outline"}
           size={size}
-          color={filled || halfFilled ? "#004643" : colors.textTertiary}
+          color={filled || halfFilled ? "#0F766E" : colors.textTertiary}
           style={filled && styles.turbineFilled}
         />
       </TouchableOpacity>
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
   },
 
   turbineFilled: {
-    shadowColor: "#004643",
+    shadowColor: "#0F766E",
     shadowOffset: { width: 0, height: 0 },
     shadowOpacity: 0.5,
     shadowRadius: 8,
